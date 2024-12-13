@@ -3,14 +3,20 @@
 
 #include "FileOperation.hpp"
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #define BLOCK_SIZE 600
 
 class Book {
 private:
-  struct Record {
-    char index[65];
+  struct BookRecord {
+    char ISBN[21];
+    char BookName[61];
+    char Keyword[61];
+    char Author[61];
+    int quantity;
+    float sellingPrice;
     int value;
   };
 
@@ -19,14 +25,12 @@ private:
     int curSize;
     int nextPos; // nextPos 指向下一个节点在Node文件中的位置
     int firstValue;
-    char firstIndex[65];
+    char firstIndex[21];
   };
-
-  // Record 按照升序排列
 
   FileOperation<Node> nodeFile;
 
-  FileOperation<Record[BLOCK_SIZE]> recordFile;
+  FileOperation<BookRecord[BLOCK_SIZE]> recordFile;
 
 public:
   Book() {
@@ -37,10 +41,10 @@ public:
 
   void FileInit() {
     if (recordFile.isEmpty()) {
-      Record record[BLOCK_SIZE];
+      BookRecord record[BLOCK_SIZE];
       for (int i = 0; i < BLOCK_SIZE; i++) {
         record[i].value = 0;
-        strcpy(record[i].index, "");
+        strcpy(record[i].ISBN, "");
       }
       recordFile.write(record);
       Node node;
@@ -64,7 +68,7 @@ public:
 
   void PrintAll() {
     // debug
-    Record record[BLOCK_SIZE];
+    BookRecord record[BLOCK_SIZE];
     Node cur;
     int nodePos = 0;
     while (true) {
@@ -72,7 +76,7 @@ public:
       recordFile.read(record, cur.curPos);
       for (int i = 0; i < cur.curSize; i++) {
         if (record[i].value != 0) {
-          std::cout << record[i].index << " " << record[i].value << std::endl;
+          std::cout << record[i].ISBN << " " << record[i].value << std::endl;
         }
       }
       std::cout << "Node Information: " << cur.curPos << " " << cur.curSize
@@ -119,18 +123,18 @@ public:
   void Insert(const std::string &index, int value) {
     // Node cur = FindNode(index, value);
     auto [cur, nodePos] = FindNode(index, value);
-    Record record[BLOCK_SIZE];
+    BookRecord record[BLOCK_SIZE];
     recordFile.read(record, cur.curPos);
 
     int i = 0;
-    while (i < cur.curSize && (strcmp(record[i].index, index.c_str()) < 0 ||
-                               (strcmp(record[i].index, index.c_str()) == 0 &&
+    while (i < cur.curSize && (strcmp(record[i].ISBN, index.c_str()) < 0 ||
+                               (strcmp(record[i].ISBN, index.c_str()) == 0 &&
                                 record[i].value < value))) {
       i++;
     }
 
     // if same index and value, do nothing
-    if (i < cur.curSize && strcmp(record[i].index, index.c_str()) == 0 &&
+    if (i < cur.curSize && strcmp(record[i].ISBN, index.c_str()) == 0 &&
         record[i].value == value) {
       return;
     }
@@ -138,11 +142,11 @@ public:
     for (int j = cur.curSize; j > i; j--) {
       record[j] = record[j - 1];
     }
-    strcpy(record[i].index, index.c_str());
+    strcpy(record[i].ISBN, index.c_str());
     record[i].value = value;
     cur.curSize++;
 
-    strcpy(cur.firstIndex, record[0].index);
+    strcpy(cur.firstIndex, record[0].ISBN);
     cur.firstValue = record[0].value;
 
     if (cur.curSize < BLOCK_SIZE) {
@@ -156,17 +160,17 @@ public:
       newNode.curSize = cur.curSize - mid;
       cur.curSize = mid;
 
-      Record newRecord[BLOCK_SIZE];
-      memcpy(newRecord, record + mid, sizeof(Record) * newNode.curSize);
+      BookRecord newRecord[BLOCK_SIZE];
+      memcpy(newRecord, record + mid, sizeof(BookRecord) * newNode.curSize);
 
       // Update the current node
       recordFile.update(record, cur.curPos);
-      strcpy(cur.firstIndex, record[0].index);
+      strcpy(cur.firstIndex, record[0].ISBN);
       cur.firstValue = record[0].value;
 
       // Write the new node
       newNode.curPos = recordFile.write(newRecord);
-      strcpy(newNode.firstIndex, newRecord[0].index);
+      strcpy(newNode.firstIndex, newRecord[0].ISBN);
       newNode.firstValue = newRecord[0].value;
       newNode.nextPos = cur.nextPos;
       cur.nextPos = nodeFile.write(newNode);
@@ -177,11 +181,11 @@ public:
 
   void Delete(const std::string &index, int value) {
     auto [cur, nodePos] = FindNode(index, value);
-    Record record[BLOCK_SIZE];
+    BookRecord record[BLOCK_SIZE];
     recordFile.read(record, cur.curPos);
 
     int i = 0;
-    while (i < cur.curSize && !(strcmp(record[i].index, index.c_str()) == 0 &&
+    while (i < cur.curSize && !(strcmp(record[i].ISBN, index.c_str()) == 0 &&
                                 record[i].value == value)) {
       i++;
     }
@@ -195,7 +199,7 @@ public:
     cur.curSize--;
 
     if (cur.curSize > 0) {
-      strcpy(cur.firstIndex, record[0].index);
+      strcpy(cur.firstIndex, record[0].ISBN);
       cur.firstValue = record[0].value;
     } else {
       strcpy(cur.firstIndex, "");
@@ -252,10 +256,10 @@ public:
       if (strcmp(cur.firstIndex, index.c_str()) > 0) {
         break;
       }
-      Record record[BLOCK_SIZE];
+      BookRecord record[BLOCK_SIZE];
       recordFile.read(record, cur.curPos);
       for (int i = 0; i < cur.curSize; i++) {
-        if (strcmp(record[i].index, index.c_str()) == 0) {
+        if (strcmp(record[i].ISBN, index.c_str()) == 0) {
           std::cout << record[i].value << " ";
           found = true;
         }
@@ -268,6 +272,140 @@ public:
     if (!found) {
       std::cout << "null" << std::endl;
     } else {
+      std::cout << std::endl;
+    }
+  }
+
+  void Select(const std::string &ISBN) {
+    // Search for the book with the specified ISBN
+    BookRecord record[BLOCK_SIZE];
+    Node cur;
+    int nodePos = 0;
+    bool found = false;
+
+    while (true) {
+      nodeFile.read(cur, nodePos);
+      recordFile.read(record, cur.curPos);
+      for (int i = 0; i < cur.curSize; i++) {
+        if (strcmp(record[i].ISBN, ISBN.c_str()) == 0) {
+          found = true;
+          break;
+        }
+      }
+      if (found || cur.nextPos == -1) {
+        break;
+      }
+      nodePos = cur.nextPos;
+    }
+
+    if (!found) {
+      // Create a new record with only ISBN
+      BookRecord newRecord;
+      strcpy(newRecord.ISBN, ISBN.c_str());
+      strcpy(newRecord.BookName, "");
+      strcpy(newRecord.Author, "");
+      strcpy(newRecord.Keyword, "");
+      newRecord.quantity = 0;
+      newRecord.sellingPrice = 0.0f;
+      newRecord.value = 0;
+      // Insert the new record using existing logic
+      Insert(newRecord.ISBN, newRecord.value);
+    }
+  }
+
+  void Buy(const std::string &ISBN, int quantity) {
+    if (quantity <= 0) {
+      std::cout << "Invalid purchase quantity" << std::endl;
+      return;
+    }
+    BookRecord record[BLOCK_SIZE];
+    Node cur;
+    int nodePos = 0;
+    bool found = false;
+    int recordIndex = -1;
+
+    while (true) {
+      nodeFile.read(cur, nodePos);
+      recordFile.read(record, cur.curPos);
+      for (int i = 0; i < cur.curSize; i++) {
+        if (strcmp(record[i].ISBN, ISBN.c_str()) == 0) {
+          found = true;
+          recordIndex = i;
+          break;
+        }
+      }
+      if (found || cur.nextPos == -1) {
+        break;
+      }
+      nodePos = cur.nextPos;
+    }
+
+    if (!found || recordIndex == -1) {
+      std::cout << "No matching book" << std::endl;
+      return;
+    }
+
+    if (record[recordIndex].quantity < quantity) {
+      std::cout << "Insufficient stock" << std::endl;
+      return;
+    }
+
+    record[recordIndex].quantity -= quantity;
+    float totalCost = quantity * record[recordIndex].sellingPrice;
+
+    recordFile.update(record, cur.curPos);
+
+    std::cout << std::fixed << std::setprecision(2) << totalCost << std::endl;
+  }
+
+  void Show(const std::string &ISBN = "", const std::string &BookName = "",
+            const std::string &Author = "", const std::string &Keyword = "") {
+    if (!Keyword.empty() && Keyword.find(' ') != std::string::npos) {
+      // Operation fails if Keyword contains multiple words
+      std::cout << std::endl;
+      return;
+    }
+
+    bool foundAny = false;
+    BookRecord record[BLOCK_SIZE];
+    Node cur;
+    int nodePos = 0;
+
+    while (true) {
+      nodeFile.read(cur, nodePos);
+      recordFile.read(record, cur.curPos);
+      for (int i = 0; i < cur.curSize; i++) {
+        bool match = true;
+        if (!ISBN.empty() && strcmp(record[i].ISBN, ISBN.c_str()) != 0) {
+          match = false;
+        }
+        if (!BookName.empty() &&
+            strcmp(record[i].BookName, BookName.c_str()) != 0) {
+          match = false;
+        }
+        if (!Author.empty() && strcmp(record[i].Author, Author.c_str()) != 0) {
+          match = false;
+        }
+        if (!Keyword.empty() &&
+            strcmp(record[i].Keyword, Keyword.c_str()) != 0) {
+          match = false;
+        }
+
+        if (match) {
+          std::cout << record[i].ISBN << "\t" << record[i].BookName << "\t"
+                    << record[i].Author << "\t" << record[i].Keyword << "\t"
+                    << std::fixed << std::setprecision(2)
+                    << record[i].sellingPrice << "\t" << record[i].quantity
+                    << "\n";
+          foundAny = true;
+        }
+      }
+      if (cur.nextPos == -1) {
+        break;
+      }
+      nodePos = cur.nextPos;
+    }
+    if (!foundAny) {
       std::cout << std::endl;
     }
   }

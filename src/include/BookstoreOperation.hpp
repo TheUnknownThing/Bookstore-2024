@@ -84,6 +84,11 @@ public:
     return userStorage.GetCurrentUserPrivilege() >= opPrivilege[op];
   }
 
+  /*
+  * @brief: User Operation
+  * @functions: Login, Logout, UserAdd, Register, Passwd, DeleteUser
+  */
+
   void Login() {
     std::string userID, passWord;
     std::cin >> userID >> passWord;
@@ -132,6 +137,11 @@ public:
     userStorage.DeleteUser(userID);
     logStorage.LogAdd(DELETE, userStorage.GetUserID());
   }
+
+  /*
+  * @brief: Book Operation
+  * @functions: Show, Buy, Select, Modify, Import
+  */
 
   void Show() {
     if (!canExecute(SHOW)) {
@@ -183,6 +193,11 @@ public:
     logStorage.LogAdd(IMPORT, userStorage.GetUserID());
   }
 
+  /*
+  * @brief: Finance Operation
+  * @functions: ShowFinance, ReportFinance
+  */
+
   void ShowFinance() {
     if (!canExecute(SHOWFINANCE)) {
       std::cout << "Invalid" << std::endl;
@@ -197,12 +212,22 @@ public:
     //TODO
   }
 
+  /*
+  * @brief: Employee Operation
+  * @functions: ReportEmployee
+  */
+
   void ReportEmployee() {
     if (!canExecute(REPORTEMPLOYEE)) {
       std::cout << "Invalid" << std::endl;
     }
     //TODO
   }
+
+  /*
+  * @brief: Log Operation
+  * @functions: Log
+  */
 
   void Log() {
     if (!canExecute(LOG)) {
