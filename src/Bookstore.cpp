@@ -1,28 +1,56 @@
+#include "BookstoreOperation.hpp"
 #include <iostream>
 #include <string>
 
 int main(){
     std::string op;
+    BookstoreOperation bookstore;
     while (true){
         std::cin >> op;
         if (op == "exit" || op == "quit"){
             break;
         }
-        else if (op == "insert"){
-            std::string index;
-            int value;
-            std::cin >> index >> value;
+        else if (op == "su"){
+            bookstore.Login();
+        }
+        else if (op == "logout"){
+            bookstore.Logout();
+        }
+        else if (op == "useradd"){
+            bookstore.UserAdd();
+        }
+        else if (op == "register"){
+            bookstore.Register();
+        }
+        else if (op == "passwd"){
+            bookstore.Passwd();
         }
         else if (op == "delete"){
-            std::string index;
-            int value;
-            std::cin >> index >> value;
+            bookstore.DeleteUser();
         }
-        else if (op == "find"){
-            std::string index;
-            std::cin >> index;
+        else if (op == "buy"){
+            bookstore.Buy();
         }
-        else if (op == "print"){
+        else if (op == "select"){
+            bookstore.Select();
+        }
+        else if (op == "modify"){
+            bookstore.Modify();
+        }
+        else if (op == "import"){
+            bookstore.Import();
+        }
+        else if (op == "showfinance"){
+            bookstore.ShowFinance();
+        }
+        else if (op == "reportfinance"){
+            bookstore.ReportFinance();
+        }
+        else if (op == "reportemployee"){
+            bookstore.ReportEmployee();
+        }
+        else{
+            std::cout << "Invalid" << std::endl;
         }
     }
 }
