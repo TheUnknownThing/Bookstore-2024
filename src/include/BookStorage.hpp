@@ -1,5 +1,5 @@
-#ifndef UNROLLEDLIST_HPP
-#define UNROLLEDLIST_HPP
+#ifndef BOOKSTORAGE_HPP
+#define BOOKSTORAGE_HPP
 
 #include "FileOperation.hpp"
 #include <cstring>
@@ -273,4 +273,4 @@ public:
   }
 };
 
-#endif // UNROLLEDLIST_HPP
+#endif // BOOKSTORAGE_HPP
