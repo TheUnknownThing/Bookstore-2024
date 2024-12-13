@@ -54,6 +54,24 @@ private:
       {"reportemployee", REPORTEMPLOYEE},
       {"log", LOG}};
 
+  struct FinancialLog {
+    int income;
+    int outcome;
+  };
+
+  struct BookLog {
+    char ISBN[21];
+    int quantity;
+    int costPrice;
+    int sellingPrice;
+  };
+
+  struct UserLog {
+    char userID[31];
+    char userName[31];
+    int privilege;
+  };
+  
   User userStorage;
   Book bookStorage;
   Logs logStorage;

@@ -5,6 +5,8 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <vector>
+#include <stack>
 
 class User {
 private:
@@ -15,8 +17,14 @@ private:
     char UserName[31];
   };
 
+  struct StoredUserSelection {
+    char BookISBN[21];
+  };
+
   FileOperation<UserInfo> userFile;
   UserInfo currentUser;
+  std::vector<UserInfo> LoggedInUsers;
+  std::stack<StoredUserSelection> UserSelections;
 
 public:
   User() {
@@ -47,8 +55,17 @@ public:
     return currentUser.Privilege;
   }
 
-  bool UserAdd() {
-
+  bool UserAdd(const std::string &UserID, const std::string &PassWord, const std::string &UserName, int Privilege) {
+    if (GetUserPrivilege(UserID) != 7) {
+      return false;
+    }
+    UserInfo user;
+    user.Privilege = Privilege;
+    strcpy(user.UserID, UserID.c_str());
+    strcpy(user.PassWord, PassWord.c_str());
+    strcpy(user.UserName, UserName.c_str());
+    userFile.write(user);
+    return true;
   }
   
   bool Register() {
@@ -63,12 +80,25 @@ public:
 
   }
 
-  bool Login() {
+  bool Login(const std::string &UserID, const std::string &PassWord) {
+    
 
   }
 
   void Logout() {
-
+    if (currentUser.Privilege == 0) {
+      return;
+    } else {
+      LoggedInUsers.pop_back();
+      if (LoggedInUsers.empty()) {
+        currentUser.Privilege = 0;
+        strcpy(currentUser.UserID, "");
+        strcpy(currentUser.PassWord, "");
+        strcpy(currentUser.UserName, "");
+      } else {
+        currentUser = LoggedInUsers.back();
+      }
+    }
   }
 
 
