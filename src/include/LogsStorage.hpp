@@ -93,6 +93,8 @@ public:
     }
   }
 
+
+
   void AddLog(const Log &newLog) {
     Node curNode;
     int nodePos = 0;

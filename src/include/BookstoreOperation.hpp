@@ -2,9 +2,9 @@
 #define BOOKSTOREOPERATION_HPP
 
 #include "BookStorage.hpp"
+#include "FinanceStorage.hpp"
 #include "LogsStorage.hpp"
 #include "UserStorage.hpp"
-#include "FinanceStorage.hpp"
 #include <cstring>
 #include <iostream>
 #include <map>
@@ -71,7 +71,7 @@ private:
     char userName[31];
     int privilege;
   };
-  
+
   User userStorage;
   Book bookStorage;
   Logs logStorage;
@@ -85,69 +85,89 @@ public:
   }
 
   /*
-  * @brief: User Operation
-  * @functions: Login, Logout, UserAdd, Register, Passwd, DeleteUser
-  */
+   * @brief: User Operation
+   * @functions: Login, Logout, UserAdd, Register, Passwd, DeleteUser
+   */
 
   void Login() {
     std::string userID, passWord;
     std::cin >> userID >> passWord;
-    userStorage.Login(userID, passWord);
-    logStorage.LogAdd(LOGIN, userID);
+    bool flag = userStorage.Login(userID, passWord);
+    if (!flag) {
+      std::cout << "Invalid" << std::endl;
+    }
+    // logStorage.LogAdd(LOGIN, userID);
   }
 
   void Logout() {
     userStorage.Logout();
-    logStorage.LogAdd(LOGOUT, userStorage.GetUserID());
+    // logStorage.LogAdd(LOGOUT, userStorage.GetUserID());
   }
 
   void UserAdd() {
     if (!canExecute(USERADD)) {
       std::cout << "Invalid" << std::endl;
+      return;
     }
     std::string userID, passWord, userName;
     int privilege;
     std::cin >> userID >> passWord >> userName >> privilege;
     userStorage.UserAdd(userID, passWord, userName, privilege);
-    logStorage.LogAdd(USERADD, userStorage.GetUserID());
+    // logStorage.LogAdd(USERADD, userStorage.GetUserID());
   }
 
   void Register() {
     std::string userID, passWord, userName;
     std::cin >> userID >> passWord >> userName;
-    user = User(userID, passWord, userName, 1);
-    userStorage.Register(user);
-    logStorage.LogAdd(REGISTER, userStorage.GetUserID());
+    bool flag = userStorage.Register(userID, passWord, userName);
+    if (!flag) {
+      std::cout << "Invalid" << std::endl;
+    }
+    // logStorage.LogAdd(REGISTER, userStorage.GetUserID());
   }
 
   void Passwd() {
-    // need to check if the user is root, TODO
-    std::string userID, passWord, newPassWord;
-    std::cin >> userID >> passWord >> newPassWord;
-    userStorage.Passwd(userID, passWord, newPassWord);
-    logStorage.LogAdd(PASSWD, userStorage.GetUserID());
+    if (!canExecute(PASSWD)) {
+      std::cout << "Invalid" << std::endl;
+      return;
+    }
+    if (userStorage.GetCurrentUserPrivilege() == 7) {
+      // root
+      std::string userID, newPassWord;
+      std::cin >> userID >> newPassWord;
+      userStorage.Passwd(userID, newPassWord);
+    } else {
+      std::string userID, passWord, newPassWord;
+      std::cin >> userID >> passWord >> newPassWord;
+      userStorage.Passwd(userID, passWord, newPassWord);
+    }
+    // logStorage.LogAdd(PASSWD, userStorage.GetUserID());
   }
 
   void DeleteUser() {
     if (!canExecute(DELETE)) {
       std::cout << "Invalid" << std::endl;
+      return;
     }
     std::string userID;
     std::cin >> userID;
-    userStorage.DeleteUser(userID);
-    logStorage.LogAdd(DELETE, userStorage.GetUserID());
+    bool flag = userStorage.DeleteUser(userID);
+    if (!flag) {
+      std::cout << "Invalid" << std::endl;
+    }
+    // logStorage.LogAdd(DELETE, userStorage.GetUserID());
   }
 
   /*
-  * @brief: Book Operation
-  * @functions: Show, Buy, Select, Modify, Import
-  */
+   * @brief: Book Operation
+   * @functions: Show, Buy, Select, Modify, Import
+   */
 
   void Show() {
     if (!canExecute(SHOW)) {
       std::cout << "Invalid" << std::endl;
     }
-    //TODO
+    // TODO
   }
 
   void Buy() {
@@ -158,7 +178,7 @@ public:
     int quantity;
     std::cin >> ISBN >> quantity;
     bookStorage.Buy(ISBN, quantity);
-    logStorage.LogAdd(BUY, userStorage.GetUserID());
+    // logStorage.LogAdd(BUY, userStorage.GetUserID());
   }
 
   void Select() {
@@ -168,7 +188,7 @@ public:
     std::string ISBN;
     std::cin >> ISBN;
     bookStorage.Select(ISBN);
-    logStorage.LogAdd(SELECT, userStorage.GetUserID());
+    // logStorage.LogAdd(SELECT, userStorage.GetUserID());
   }
 
   void Modify() {
@@ -178,8 +198,8 @@ public:
     std::string ISBN;
     int quantity, costPrice, sellingPrice;
     std::cin >> ISBN >> quantity >> costPrice >> sellingPrice;
-    bookStorage.Modify(ISBN, quantity, costPrice, sellingPrice);
-    logStorage.LogAdd(MODIFY, userStorage.GetUserID());
+
+    // logStorage.LogAdd(MODIFY, userStorage.GetUserID());
   }
 
   void Import() {
@@ -189,45 +209,45 @@ public:
     std::string ISBN;
     int quantity, costPrice;
     std::cin >> ISBN >> quantity >> costPrice;
-    bookStorage.Import(ISBN, quantity, costPrice);
-    logStorage.LogAdd(IMPORT, userStorage.GetUserID());
+
+    // logStorage.LogAdd(IMPORT, userStorage.GetUserID());
   }
 
   /*
-  * @brief: Finance Operation
-  * @functions: ShowFinance, ReportFinance
-  */
+   * @brief: Finance Operation
+   * @functions: ShowFinance, ReportFinance
+   */
 
   void ShowFinance() {
     if (!canExecute(SHOWFINANCE)) {
       std::cout << "Invalid" << std::endl;
     }
-    //TODO
+    // TODO
   }
 
   void ReportFinance() {
     if (!canExecute(REPORTFINANCE)) {
       std::cout << "Invalid" << std::endl;
     }
-    //TODO
+    // TODO
   }
 
   /*
-  * @brief: Employee Operation
-  * @functions: ReportEmployee
-  */
+   * @brief: Employee Operation
+   * @functions: ReportEmployee
+   */
 
   void ReportEmployee() {
     if (!canExecute(REPORTEMPLOYEE)) {
       std::cout << "Invalid" << std::endl;
     }
-    //TODO
+    // TODO
   }
 
   /*
-  * @brief: Log Operation
-  * @functions: Log
-  */
+   * @brief: Log Operation
+   * @functions: Log
+   */
 
   void Log() {
     if (!canExecute(LOG)) {
@@ -235,7 +255,6 @@ public:
     }
     logStorage.ShowLog();
   }
-
 };
 
 #endif // BOOKSTOREOPERATION_HPP
