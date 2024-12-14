@@ -5,8 +5,10 @@ project(Bookstore VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 # Add the executable
-add_executable(Bookstore src/Bookstore.cpp)
+add_executable(code src/Bookstore.cpp)
 
 # Include directories
 include_directories(src/include)
