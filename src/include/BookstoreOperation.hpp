@@ -90,6 +90,7 @@ public:
    */
 
   void Login() {
+    // userStorage.PrintAll(); // debug
     std::string userID, passWord;
     std::cin >> userID >> passWord;
     bool flag = userStorage.Login(userID, passWord);

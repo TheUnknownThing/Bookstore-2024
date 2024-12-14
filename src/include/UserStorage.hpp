@@ -55,6 +55,8 @@ public:
       node.nextPos = -1;
       memset(&node.firstUser, 0, sizeof(UserInfo));
       nodeFile.write(node);
+      
+      UserAdd("root", "sjtu", "root", 7);
     }
     if (nodeFile.isEmpty()) {
       Node node;
@@ -68,6 +70,26 @@ public:
     strcpy(currentUser.UserID, "");
     strcpy(currentUser.PassWord, "");
     strcpy(currentUser.UserName, "");
+  }
+
+  void PrintAll() {
+    Node cur;
+    int nodePos = 0;
+    while (true) {
+      nodeFile.read(cur, nodePos);
+      UserInfo users[BLOCK_SIZE];
+      userFile.read(users, cur.curPos);
+      for (int i = 0; i < cur.curSize; i++) {
+        std::cout << users[i].UserID << " " << users[i].PassWord << " " << users[i].UserName << " " << users[i].Privilege << std::endl;
+      }
+      std::cout << "Node Information: " << cur.curPos << " " << cur.curSize
+                << " " << cur.nextPos << " " << cur.firstUser.UserID << " " << std::endl;
+      std::cout << "Node End" << std::endl;
+      if (cur.nextPos == -1) {
+        break;
+      }
+      nodePos = cur.nextPos;
+    }
   }
 
   bool CompNode(const Node &node, const std::string &UserID) {
@@ -188,25 +210,22 @@ public:
     return true;
   }
 
-  UserInfo *FindUser(const std::string &UserID) {
+  UserInfo FindUser(const std::string &UserID) {
     auto [curNode, nodePos] = FindNode(UserID);
     UserInfo users[BLOCK_SIZE];
     userFile.read(users, curNode.curPos);
 
     for (int i = 0; i < curNode.curSize; ++i) {
       if (strcmp(users[i].UserID, UserID.c_str()) == 0) {
-        return &users[i];
+        return users[i];
       }
     }
-    return nullptr;
+    return UserInfo();
   }
 
   int GetUserPrivilege(const std::string &UserID) {
-    UserInfo *user = FindUser(UserID);
-    if (user) {
-      return user->Privilege;
-    }
-    return 0;
+    UserInfo user = FindUser(UserID);
+    return user.Privilege;
   }
 
   int GetCurrentUserPrivilege() {
@@ -218,10 +237,10 @@ public:
   }
 
   bool Login(const std::string &UserID, const std::string &PassWord) {
-    UserInfo *user = FindUser(UserID);
-    if (user && strcmp(user->PassWord, PassWord.c_str()) == 0) {
-      currentUser = *user;
-      LoggedInUsers.push_back(currentUser);
+    UserInfo user = FindUser(UserID);
+    if (strcmp(user.PassWord, PassWord.c_str()) == 0) {
+      currentUser = user;
+      LoggedInUsers.push_back(user);
       return true;
     }
     return false;
@@ -266,9 +285,14 @@ public:
 
   // normal user
   bool Passwd(const std::string &UserID, const std::string &PassWord, const std::string &NewPassWord) {
-    UserInfo *user = FindUser(UserID);
-    if (user && strcmp(user->PassWord, PassWord.c_str()) == 0) {
-      strcpy(user->PassWord, NewPassWord.c_str());
+    UserInfo user = FindUser(UserID);
+    if (strcmp(user.UserID, UserID.c_str()) != 0) {
+      return false;
+    }
+    if (strcmp(user.PassWord, PassWord.c_str()) == 0) {
+      strcpy(user.PassWord, NewPassWord.c_str());
+      DeleteUser(UserID);
+      InsertUser(user);
       return true;
     }
     return false;
@@ -276,12 +300,14 @@ public:
 
   // root
   bool Passwd(const std::string &UserID, const std::string &NewPassWord) {
-    UserInfo *user = FindUser(UserID);
-    if (user) {
-      strcpy(user->PassWord, NewPassWord.c_str());
-      return true;
+    UserInfo user = FindUser(UserID);
+    if (strcmp(user.UserID, UserID.c_str()) != 0) {
+      return false;
     }
-    return false;
+    strcpy(user.PassWord, NewPassWord.c_str());
+    DeleteUser(UserID);
+    InsertUser(user);
+    return true;
   }
 
 

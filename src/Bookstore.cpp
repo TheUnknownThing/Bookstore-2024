@@ -8,7 +8,7 @@ int main(){
     while (true){
         std::cin >> op;
         if (op == "exit" || op == "quit"){
-            break;
+            exit(0);
         }
         else if (op == "su"){
             bookstore.Login();
