@@ -112,6 +112,28 @@ public:
     }
   }
 
+  bool ValidateUser(const UserInfo &user) {
+    // UserName: all ASCII characters, length <= 30
+    if (strlen(user.UserName) > 30) {
+      return false;
+    }
+    // UserID, Password: Numbers, letters, and underline, length <= 30
+    if (strlen(user.UserID) > 30 || strlen(user.PassWord) > 30) {
+      return false;
+    }
+    for (int i = 0; i < strlen(user.UserID); ++i) {
+      if (!isalnum(user.UserID[i]) && user.UserID[i] != '_') { // isalnum: Numbers and letters
+        return false;
+      }
+    }
+    for (int i = 0; i < strlen(user.PassWord); ++i) {
+      if (!isalnum(user.PassWord[i]) && user.PassWord[i] != '_') {
+        return false;
+      }
+    }
+    return true;
+  }
+
   bool InsertUser(const UserInfo &user) {
     auto [curNode, nodePos] = FindNode(user.UserID);
     UserInfo users[BLOCK_SIZE];
@@ -268,8 +290,10 @@ public:
     strcpy(user.UserID, UserID.c_str());
     strcpy(user.PassWord, PassWord.c_str());
     strcpy(user.UserName, UserName.c_str());
-    InsertUser(user);
-    return true;
+    if (!ValidateUser(user)) {
+      return false;
+    }
+    return InsertUser(user);
   }
 
   bool Register(const std::string &UserID, const std::string &PassWord, const std::string &UserName) {
@@ -278,6 +302,9 @@ public:
     strcpy(user.UserID, UserID.c_str());
     strcpy(user.PassWord, PassWord.c_str());
     strcpy(user.UserName, UserName.c_str());
+    if (!ValidateUser(user)) {
+      return false;
+    }
     return InsertUser(user);
   }
 
@@ -291,6 +318,9 @@ public:
     }
     if (strcmp(user.PassWord, PassWord.c_str()) == 0) {
       strcpy(user.PassWord, NewPassWord.c_str());
+      if (!ValidateUser(user)) {
+        return false;
+      }
       DeleteUser(UserID);
       InsertUser(user);
       return true;
@@ -305,14 +335,13 @@ public:
       return false;
     }
     strcpy(user.PassWord, NewPassWord.c_str());
+    if (!ValidateUser(user)) {
+      return false;
+    }
     DeleteUser(UserID);
     InsertUser(user);
     return true;
   }
-
-
-  
-
 };
 
 #endif // USERSTORAGE_HPP

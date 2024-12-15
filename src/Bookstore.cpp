@@ -1,56 +1,78 @@
 #include "BookstoreOperation.hpp"
 #include <iostream>
+#include <sstream>
 #include <string>
 
-int main(){
-    std::string op;
-    BookstoreOperation bookstore;
-    while (true){
-        std::cin >> op;
-        if (op == "exit" || op == "quit"){
-            exit(0);
-        }
-        else if (op == "su"){
-            bookstore.Login();
-        }
-        else if (op == "logout"){
-            bookstore.Logout();
-        }
-        else if (op == "useradd"){
-            bookstore.UserAdd();
-        }
-        else if (op == "register"){
-            bookstore.Register();
-        }
-        else if (op == "passwd"){
-            bookstore.Passwd();
-        }
-        else if (op == "delete"){
-            bookstore.DeleteUser();
-        }
-        else if (op == "buy"){
-            bookstore.Buy();
-        }
-        else if (op == "select"){
-            bookstore.Select();
-        }
-        else if (op == "modify"){
-            bookstore.Modify();
-        }
-        else if (op == "import"){
-            bookstore.Import();
-        }
-        else if (op == "showfinance"){
-            bookstore.ShowFinance();
-        }
-        else if (op == "reportfinance"){
-            bookstore.ReportFinance();
-        }
-        else if (op == "reportemployee"){
-            bookstore.ReportEmployee();
-        }
-        else{
-            std::cout << "Invalid" << std::endl;
-        }
+int main() {
+  std::string line, op;
+  BookstoreOperation bookstore;
+  while (true) {
+    std::getline(std::cin, line);
+    if (line.empty())
+      continue;
+    std::istringstream iss(line);
+    iss >> op;
+    if (op == "exit" || op == "quit") {
+      if (!(iss >> std::ws).eof()) {
+        std::cout << "Invalid" << std::endl;
+        continue;
+      }
+      exit(0);
+    } else if (op == "su") {
+      std::string userID, passWord;
+      if (!(iss >> userID)) {
+        std::cout << "Invalid" << std::endl;
+        continue;
+      }
+      iss >> passWord;
+      if (iss >> std::ws >> op) {
+        std::cout << "Invalid" << std::endl;
+        continue;
+      }
+      bookstore.Login(userID, passWord);
+    } else if (op == "logout") {
+      if (!(iss >> std::ws).eof()) {
+        std::cout << "Invalid" << std::endl;
+        continue;
+      }
+      bookstore.Logout();
+    } else if (op == "useradd") {
+      std::string userID, passWord, userName;
+      int privilege;
+      if (!(iss >> userID >> passWord >> privilege >> userName) ||
+          (iss >> op)) {
+        std::cout << "Invalid" << std::endl;
+        continue;
+      }
+      bookstore.UserAdd(userID, passWord, privilege, userName);
+    } else if (op == "register") {
+      std::string userID, passWord, userName;
+      if (!(iss >> userID >> passWord >> userName) || (iss >> op)) {
+        std::cout << "Invalid" << std::endl;
+        continue;
+      }
+      bookstore.Register(userID, passWord, userName);
+    } else if (op == "passwd") {
+      std::string userID, passWord, newPassWord;
+      if ((iss >> userID >> passWord >> newPassWord) && !(iss >> op)) {
+        bookstore.Passwd(userID, passWord, newPassWord);
+      } else if ((iss >> userID >> newPassWord) && !(iss >> op)) {
+        bookstore.Passwd(userID, newPassWord);
+      } else {
+        std::cout << "Invalid" << std::endl;
+      }
+    } else if (op == "delete") {
+      std::string userID;
+      if (!(iss >> userID) || (iss >> op)) {
+        std::cout << "Invalid" << std::endl;
+        continue;
+      }
+      bookstore.DeleteUser(userID);
     }
+    // TODO: Add more operations
+    else {
+      std::cout << "Invalid" << std::endl;
+    }
+  }
+  return 0;
 }

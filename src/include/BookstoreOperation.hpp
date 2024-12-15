@@ -32,8 +32,8 @@ private:
   };
 
   std::map<OperationType, int> opPrivilege = {
-      {LOGIN, 0},          {LOGOUT, 0},          {USERADD, 7}, {REGISTER, 1},
-      {PASSWD, 2},         {DELETE, 3},          {SHOW, 4},    {BUY, 5},
+      {LOGIN, 0},          {LOGOUT, 0},          {USERADD, 3}, {REGISTER, 0},
+      {PASSWD, 1},         {DELETE, 7},          {SHOW, 4},    {BUY, 5},
       {SELECT, 6},         {MODIFY, 7},          {IMPORT, 8},  {SHOWFINANCE, 9},
       {REPORTFINANCE, 10}, {REPORTEMPLOYEE, 11}, {LOG, 12}};
 
@@ -89,74 +89,71 @@ public:
    * @functions: Login, Logout, UserAdd, Register, Passwd, DeleteUser
    */
 
-  void Login() {
-    // userStorage.PrintAll(); // debug
-    std::string userID, passWord;
-    std::cin >> userID >> passWord;
-    bool flag = userStorage.Login(userID, passWord);
-    if (!flag) {
+  void Login(const std::string &userID, const std::string &passWord = "") {
+    if (!userStorage.Login(userID, passWord)) {
       std::cout << "Invalid" << std::endl;
     }
-    // logStorage.LogAdd(LOGIN, userID);
   }
 
-  void Logout() {
-    userStorage.Logout();
-    // logStorage.LogAdd(LOGOUT, userStorage.GetUserID());
-  }
-
-  void UserAdd() {
+  void UserAdd(const std::string &userID, const std::string &passWord,
+               int privilege, const std::string &userName) {
     if (!canExecute(USERADD)) {
       std::cout << "Invalid" << std::endl;
       return;
     }
-    std::string userID, passWord, userName;
-    int privilege;
-    std::cin >> userID >> passWord >> userName >> privilege;
-    userStorage.UserAdd(userID, passWord, userName, privilege);
-    // logStorage.LogAdd(USERADD, userStorage.GetUserID());
-  }
-
-  void Register() {
-    std::string userID, passWord, userName;
-    std::cin >> userID >> passWord >> userName;
-    bool flag = userStorage.Register(userID, passWord, userName);
-    if (!flag) {
+    if (!userStorage.UserAdd(userID, passWord, userName, privilege)) {
       std::cout << "Invalid" << std::endl;
     }
-    // logStorage.LogAdd(REGISTER, userStorage.GetUserID());
   }
 
-  void Passwd() {
+  void Passwd(const std::string &userID, const std::string &newPassWord) {
     if (!canExecute(PASSWD)) {
       std::cout << "Invalid" << std::endl;
       return;
     }
-    if (userStorage.GetCurrentUserPrivilege() == 7) {
-      // root
-      std::string userID, newPassWord;
-      std::cin >> userID >> newPassWord;
-      userStorage.Passwd(userID, newPassWord);
-    } else {
-      std::string userID, passWord, newPassWord;
-      std::cin >> userID >> passWord >> newPassWord;
-      userStorage.Passwd(userID, passWord, newPassWord);
+    if (!userStorage.Passwd(userID, newPassWord)) {
+      std::cout << "Invalid" << std::endl;
     }
-    // logStorage.LogAdd(PASSWD, userStorage.GetUserID());
   }
 
-  void DeleteUser() {
+  void Passwd(const std::string &userID, const std::string &passWord,
+              const std::string &newPassWord) {
+    if (!canExecute(PASSWD)) {
+      std::cout << "Invalid" << std::endl;
+      return;
+    }
+    if (!userStorage.Passwd(userID, passWord, newPassWord)) {
+      std::cout << "Invalid" << std::endl;
+    }
+  }
+
+  void DeleteUser(const std::string &userID) {
     if (!canExecute(DELETE)) {
       std::cout << "Invalid" << std::endl;
       return;
     }
-    std::string userID;
-    std::cin >> userID;
-    bool flag = userStorage.DeleteUser(userID);
-    if (!flag) {
+    if (!userStorage.DeleteUser(userID)) {
       std::cout << "Invalid" << std::endl;
     }
-    // logStorage.LogAdd(DELETE, userStorage.GetUserID());
+  }
+
+  void Register(const std::string &userID, const std::string &passWord,
+                const std::string &userName) {
+    if (!canExecute(REGISTER)) {
+      std::cout << "Invalid" << std::endl;
+      return;
+    }
+    if (!userStorage.Register(userID, passWord, userName)) {
+      std::cout << "Invalid" << std::endl;
+    }
+  }
+
+  void Logout() {
+    if (!canExecute(LOGOUT)) {
+      std::cout << "Invalid" << std::endl;
+      return;
+    }
+    userStorage.Logout();
   }
 
   /*
@@ -175,10 +172,6 @@ public:
     if (!canExecute(BUY)) {
       std::cout << "Invalid" << std::endl;
     }
-    std::string ISBN;
-    int quantity;
-    std::cin >> ISBN >> quantity;
-    bookStorage.Buy(ISBN, quantity);
     // logStorage.LogAdd(BUY, userStorage.GetUserID());
   }
 
@@ -186,9 +179,6 @@ public:
     if (!canExecute(SELECT)) {
       std::cout << "Invalid" << std::endl;
     }
-    std::string ISBN;
-    std::cin >> ISBN;
-    bookStorage.Select(ISBN);
     // logStorage.LogAdd(SELECT, userStorage.GetUserID());
   }
 
@@ -196,9 +186,6 @@ public:
     if (!canExecute(MODIFY)) {
       std::cout << "Invalid" << std::endl;
     }
-    std::string ISBN;
-    int quantity, costPrice, sellingPrice;
-    std::cin >> ISBN >> quantity >> costPrice >> sellingPrice;
 
     // logStorage.LogAdd(MODIFY, userStorage.GetUserID());
   }
