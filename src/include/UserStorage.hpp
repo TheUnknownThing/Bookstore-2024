@@ -35,7 +35,7 @@ private:
 public:
   User() {
     userFile.initialise("user.dat");
-    nodeFile.initialise("node.dat");
+    nodeFile.initialise("userNode.dat");
     FileInit();
   }
 
@@ -144,6 +144,7 @@ public:
       i++;
     }
     if (i < curNode.curSize && strcmp(users[i].UserID, user.UserID) == 0) {
+      std::cout << "User already exists" << std::endl; // debug
       return false; // 用户已存在
     }
 

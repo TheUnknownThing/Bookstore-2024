@@ -72,8 +72,8 @@ private:
 
 public:
   Logs() {
-    recordFile.initialise("log_record.dat");
-    nodeFile.initialise("log_node.dat");
+    recordFile.initialise("log.dat");
+    nodeFile.initialise("logNode.dat");
     FileInit();
   }
 

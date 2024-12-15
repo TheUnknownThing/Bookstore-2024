@@ -54,10 +54,10 @@ int main() {
       bookstore.Register(userID, passWord, userName);
     } else if (op == "passwd") {
       std::string userID, passWord, newPassWord;
-      if ((iss >> userID >> passWord >> newPassWord) && !(iss >> op)) {
-        bookstore.Passwd(userID, passWord, newPassWord);
-      } else if ((iss >> userID >> newPassWord) && !(iss >> op)) {
+      if ((iss >> userID >> newPassWord) && !(iss >> op)) {
         bookstore.Passwd(userID, newPassWord);
+      } else if ((iss >> userID >> passWord >> newPassWord) && !(iss >> op)) {
+        bookstore.Passwd(userID, passWord, newPassWord);
       } else {
         std::cout << "Invalid" << std::endl;
       }

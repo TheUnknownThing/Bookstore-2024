@@ -33,7 +33,7 @@ private:
 public:
   Book() {
     recordFile.initialise("book.dat");
-    nodeFile.initialise("node.dat");
+    nodeFile.initialise("bookNode.dat");
     FileInit();
   }
 
