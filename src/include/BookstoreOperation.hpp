@@ -144,28 +144,30 @@ public:
    * @functions: Show, Buy, Select, Modify, Import
    */
 
-  void Show() {
+  void Show(const std::string &ISBN = "", const std::string &BookName = "",
+            const std::string &Author = "", const std::string &Keyword = "") {
     if (!canExecute(SHOW)) {
       std::cout << "Invalid" << std::endl;
     }
     // TODO
   }
 
-  void Buy() {
+  void Buy(const std::string &ISBN, int quantity) {
     if (!canExecute(BUY)) {
       std::cout << "Invalid" << std::endl;
     }
     // logStorage.LogAdd(BUY, userStorage.GetUserID());
   }
 
-  void Select() {
+  void Select(const std::string &ISBN) {
     if (!canExecute(SELECT)) {
       std::cout << "Invalid" << std::endl;
     }
     // logStorage.LogAdd(SELECT, userStorage.GetUserID());
   }
 
-  void Modify() {
+  void Modify(const std::string &ISBN = "", const std::string &BookName = "",
+              const std::string &Author = "", const std::string &Keyword = "") {
     if (!canExecute(MODIFY)) {
       std::cout << "Invalid" << std::endl;
     }
@@ -173,13 +175,10 @@ public:
     // logStorage.LogAdd(MODIFY, userStorage.GetUserID());
   }
 
-  void Import() {
+  void Import(float quantity, float costPrice) {
     if (!canExecute(IMPORT)) {
       std::cout << "Invalid" << std::endl;
     }
-    std::string ISBN;
-    int quantity, costPrice;
-    std::cin >> ISBN >> quantity >> costPrice;
 
     // logStorage.LogAdd(IMPORT, userStorage.GetUserID());
   }

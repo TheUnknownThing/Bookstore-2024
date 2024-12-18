@@ -85,8 +85,107 @@ int main() {
         continue;
       }
       bookstore.DeleteUser(userID);
-    }
+    } 
     // TODO: Add more operations
+    else if (op == "select") {
+      std::string ISBN;
+      if (!(iss >> ISBN) || (iss >> op)) {
+        std::cout << "Invalid" << std::endl;
+        continue;
+      }
+      bookstore.Select(ISBN);
+    } else if (op == "modify") {
+      std::string type;
+      if (!(iss >> type)) {
+        std::cout << "Invalid" << std::endl;
+        continue;
+      }
+      if (type == "-ISBN") {
+        std::string ISBN;
+        if (!(iss >> ISBN) || (iss >> op)) {
+          std::cout << "Invalid" << std::endl;
+          continue;
+        }
+        bookstore.Modify(ISBN);
+      } else if (type == "-name") {
+        std::string BookName;
+        if (!(iss >> BookName) || (iss >> op)) {
+          std::cout << "Invalid" << std::endl;
+          continue;
+        }
+        bookstore.Modify("", BookName);
+      } else if (type == "-author") {
+        std::string Author;
+        if (!(iss >> Author) || (iss >> op)) {
+          std::cout << "Invalid" << std::endl;
+          continue;
+        }
+        bookstore.Modify("", "", Author);
+      } else if (type == "-keyword") {
+        std::string Keyword;
+        if (!(iss >> Keyword) || (iss >> op)) {
+          std::cout << "Invalid" << std::endl;
+          continue;
+        }
+        bookstore.Modify("", "", "", Keyword);
+      } else {
+        std::cout << "Invalid" << std::endl;
+      }
+
+    } else if (op == "show") {
+      std::string type;
+      if (!(iss >> type)) {
+        std::cout << "Invalid" << std::endl;
+        continue;
+      }
+      if (type == "-ISBN") {
+        std::string ISBN;
+        if (!(iss >> ISBN) || (iss >> op)) {
+          std::cout << "Invalid" << std::endl;
+          continue;
+        }
+        bookstore.Show(ISBN);
+      } else if (type == "-name") {
+        std::string BookName;
+        if (!(iss >> BookName) || (iss >> op)) {
+          std::cout << "Invalid" << std::endl;
+          continue;
+        }
+        bookstore.Show("", BookName);
+      } else if (type == "-author") {
+        std::string Author;
+        if (!(iss >> Author) || (iss >> op)) {
+          std::cout << "Invalid" << std::endl;
+          continue;
+        }
+        bookstore.Show("", "", Author);
+      } else if (type == "-keyword") {
+        std::string Keyword;
+        if (!(iss >> Keyword) || (iss >> op)) {
+          std::cout << "Invalid" << std::endl;
+          continue;
+        }
+        bookstore.Show("", "", "", Keyword);
+      } else {
+        std::cout << "Invalid" << std::endl;
+      }
+    } else if (op == "buy") {
+      std::string ISBN;
+      int quantity;
+      if (!(iss >> ISBN >> quantity) || (iss >> op)) {
+        std::cout << "Invalid" << std::endl;
+        continue;
+      }
+      bookstore.Buy(ISBN, quantity);
+    } else if (op == "import") {
+      std::string ISBN;
+      float quantity, costPrice;
+      if (!(iss >> ISBN >> quantity >> costPrice) || (iss >> op)) {
+        std::cout << "Invalid" << std::endl;
+        continue;
+      }
+      bookstore.Import(quantity, costPrice);
+    }
     else {
       std::cout << "Invalid" << std::endl;
     }
