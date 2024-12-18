@@ -20,16 +20,22 @@ int main() {
       exit(0);
     } else if (op == "su") {
       std::string userID, passWord;
-      if (!(iss >> userID)) {
-        std::cout << "Invalid" << std::endl;
-        continue;
+      std::vector<std::string> inputs;
+      std::string temp;
+      while (iss >> temp) {
+        inputs.push_back(temp);
       }
-      iss >> passWord;
-      if (iss >> std::ws >> op) {
+
+      if (inputs.size() == 1) {
+        userID = inputs[0];
+        bookstore.Login(userID);
+      } else if (inputs.size() == 2) {
+        userID = inputs[0];
+        passWord = inputs[1];
+        bookstore.Login(userID, passWord);
+      } else {
         std::cout << "Invalid" << std::endl;
-        continue;
       }
-      bookstore.Login(userID, passWord);
     } else if (op == "logout") {
       if (!(iss >> std::ws).eof()) {
         std::cout << "Invalid" << std::endl;
@@ -54,9 +60,20 @@ int main() {
       bookstore.Register(userID, passWord, userName);
     } else if (op == "passwd") {
       std::string userID, passWord, newPassWord;
-      if ((iss >> userID >> newPassWord) && !(iss >> op)) {
+      std::vector<std::string> inputs;
+      std::string temp;
+      while (iss >> temp) {
+        inputs.push_back(temp);
+      }
+
+      if (inputs.size() == 2) {
+        userID = inputs[0];
+        newPassWord = inputs[1];
         bookstore.Passwd(userID, newPassWord);
-      } else if ((iss >> userID >> passWord >> newPassWord) && !(iss >> op)) {
+      } else if (inputs.size() == 3) {
+        userID = inputs[0];
+        passWord = inputs[1];
+        newPassWord = inputs[2];
         bookstore.Passwd(userID, passWord, newPassWord);
       } else {
         std::cout << "Invalid" << std::endl;

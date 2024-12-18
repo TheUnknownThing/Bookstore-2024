@@ -4,9 +4,9 @@
 #include "FileOperation.hpp"
 #include <cstring>
 #include <iostream>
+#include <stack>
 #include <string>
 #include <vector>
-#include <stack>
 
 #define BLOCK_SIZE 600
 
@@ -55,7 +55,7 @@ public:
       node.nextPos = -1;
       memset(&node.firstUser, 0, sizeof(UserInfo));
       nodeFile.write(node);
-      
+
       UserAdd("root", "sjtu", "root", 7);
     }
     if (nodeFile.isEmpty()) {
@@ -80,10 +80,13 @@ public:
       UserInfo users[BLOCK_SIZE];
       userFile.read(users, cur.curPos);
       for (int i = 0; i < cur.curSize; i++) {
-        std::cout << users[i].UserID << " " << users[i].PassWord << " " << users[i].UserName << " " << users[i].Privilege << std::endl;
+        std::cout << users[i].UserID << " " << users[i].PassWord << " "
+                  << users[i].UserName << " " << users[i].Privilege
+                  << std::endl;
       }
       std::cout << "Node Information: " << cur.curPos << " " << cur.curSize
-                << " " << cur.nextPos << " " << cur.firstUser.UserID << " " << std::endl;
+                << " " << cur.nextPos << " " << cur.firstUser.UserID << " "
+                << std::endl;
       std::cout << "Node End" << std::endl;
       if (cur.nextPos == -1) {
         break;
@@ -122,7 +125,8 @@ public:
       return false;
     }
     for (int i = 0; i < strlen(user.UserID); ++i) {
-      if (!isalnum(user.UserID[i]) && user.UserID[i] != '_') { // isalnum: Numbers and letters
+      if (!isalnum(user.UserID[i]) &&
+          user.UserID[i] != '_') { // isalnum: Numbers and letters
         return false;
       }
     }
@@ -144,7 +148,7 @@ public:
       i++;
     }
     if (i < curNode.curSize && strcmp(users[i].UserID, user.UserID) == 0) {
-      std::cout << "User already exists" << std::endl; // debug
+      // std::cout << "User already exists" << std::endl; // debug
       return false; // 用户已存在
     }
 
@@ -181,17 +185,18 @@ public:
     return true;
   }
 
-  bool DeleteUser(const std::string &UserID) {
+  void Delete(const std::string &UserID) {
     auto [curNode, nodePos] = FindNode(UserID);
     UserInfo users[BLOCK_SIZE];
     userFile.read(users, curNode.curPos);
 
     int i = 0;
-    while (i < curNode.curSize && strcmp(users[i].UserID, UserID.c_str()) != 0) {
+    while (i < curNode.curSize &&
+           strcmp(users[i].UserID, UserID.c_str()) != 0) {
       i++;
     }
     if (i == curNode.curSize) {
-      return false; // 用户不存在
+      return;
     }
 
     for (int j = i; j < curNode.curSize - 1; ++j) {
@@ -217,7 +222,8 @@ public:
         UserInfo nextUsers[BLOCK_SIZE];
         userFile.read(nextUsers, nextNode.curPos);
 
-        memcpy(users + curNode.curSize, nextUsers, sizeof(UserInfo) * nextNode.curSize);
+        memcpy(users + curNode.curSize, nextUsers,
+               sizeof(UserInfo) * nextNode.curSize);
         curNode.curSize += nextNode.curSize;
         curNode.nextPos = nextNode.nextPos;
 
@@ -230,7 +236,7 @@ public:
         userFile.Delete(nextNode.curPos);
       }
     }
-    return true;
+    return;
   }
 
   UserInfo FindUser(const std::string &UserID) {
@@ -251,16 +257,24 @@ public:
     return user.Privilege;
   }
 
-  int GetCurrentUserPrivilege() {
-    return currentUser.Privilege;
-  }
+  int GetCurrentUserPrivilege() { return currentUser.Privilege; }
 
-  std::string GetCurrentUserID() {
-    return std::string(currentUser.UserID);
-  }
+  std::string GetCurrentUserID() { return std::string(currentUser.UserID); }
 
   bool Login(const std::string &UserID, const std::string &PassWord) {
     UserInfo user = FindUser(UserID);
+    if (strcmp(user.UserID, UserID.c_str()) != 0) {
+      return false;
+    }
+    if (PassWord == "") {
+      // if current user privilege is higher than the user to be logged in
+      if (currentUser.Privilege >= user.Privilege) {
+        currentUser = user;
+        LoggedInUsers.push_back(user);
+        return true;
+      }
+      return false;
+    }
     if (strcmp(user.PassWord, PassWord.c_str()) == 0) {
       currentUser = user;
       LoggedInUsers.push_back(user);
@@ -285,9 +299,13 @@ public:
     }
   }
 
-  bool UserAdd(const std::string &UserID, const std::string &PassWord, const std::string &UserName, int Privilege) {
+  bool UserAdd(const std::string &UserID, const std::string &PassWord,
+               const std::string &UserName, int Privilege) {
     UserInfo user;
     user.Privilege = Privilege;
+    if (user.Privilege >= currentUser.Privilege) {
+      return false;
+    }
     strcpy(user.UserID, UserID.c_str());
     strcpy(user.PassWord, PassWord.c_str());
     strcpy(user.UserName, UserName.c_str());
@@ -297,7 +315,8 @@ public:
     return InsertUser(user);
   }
 
-  bool Register(const std::string &UserID, const std::string &PassWord, const std::string &UserName) {
+  bool Register(const std::string &UserID, const std::string &PassWord,
+                const std::string &UserName) {
     UserInfo user;
     user.Privilege = 1;
     strcpy(user.UserID, UserID.c_str());
@@ -309,10 +328,9 @@ public:
     return InsertUser(user);
   }
 
-  // 2 implementaions for Passwd, one for root, one for normal user
-
   // normal user
-  bool Passwd(const std::string &UserID, const std::string &PassWord, const std::string &NewPassWord) {
+  bool Passwd(const std::string &UserID, const std::string &PassWord,
+              const std::string &NewPassWord) {
     UserInfo user = FindUser(UserID);
     if (strcmp(user.UserID, UserID.c_str()) != 0) {
       return false;
@@ -322,7 +340,7 @@ public:
       if (!ValidateUser(user)) {
         return false;
       }
-      DeleteUser(UserID);
+      Delete(UserID);
       InsertUser(user);
       return true;
     }
@@ -339,8 +357,23 @@ public:
     if (!ValidateUser(user)) {
       return false;
     }
-    DeleteUser(UserID);
+    Delete(UserID);
     InsertUser(user);
+    return true;
+  }
+
+  bool DeleteUser(const std::string &UserID) {
+    UserInfo user = FindUser(UserID);
+    if (strcmp(user.UserID, UserID.c_str()) != 0) {
+      return false;
+    }
+    // check if logged in
+    for (auto &u : LoggedInUsers) {
+      if (strcmp(u.UserID, UserID.c_str()) == 0) {
+        return false;
+      }
+    }
+    Delete(UserID);
     return true;
   }
 };

@@ -19,6 +19,7 @@ private:
     USERADD,
     REGISTER,
     PASSWD,
+    PASSWDROOT,
     DELETE,
     SHOW,
     BUY,
@@ -32,27 +33,12 @@ private:
   };
 
   std::map<OperationType, int> opPrivilege = {
-      {LOGIN, 0},          {LOGOUT, 0},          {USERADD, 3}, {REGISTER, 0},
-      {PASSWD, 1},         {DELETE, 7},          {SHOW, 4},    {BUY, 5},
-      {SELECT, 6},         {MODIFY, 7},          {IMPORT, 8},  {SHOWFINANCE, 9},
-      {REPORTFINANCE, 10}, {REPORTEMPLOYEE, 11}, {LOG, 12}};
-
-  std::map<std::string, OperationType> opMap = {
-      {"login", LOGIN},
-      {"logout", LOGOUT},
-      {"useradd", USERADD},
-      {"register", REGISTER},
-      {"passwd", PASSWD},
-      {"delete", DELETE},
-      {"show", SHOW},
-      {"buy", BUY},
-      {"select", SELECT},
-      {"modify", MODIFY},
-      {"import", IMPORT},
-      {"showfinance", SHOWFINANCE},
-      {"reportfinance", REPORTFINANCE},
-      {"reportemployee", REPORTEMPLOYEE},
-      {"log", LOG}};
+      {LOGIN, 0},       {LOGOUT, 1},         {USERADD, 3},
+      {REGISTER, 0},    {PASSWD, 1},         {PASSWDROOT, 7},
+      {DELETE, 7},      {SHOW, 4},           {BUY, 5},
+      {SELECT, 6},      {MODIFY, 7},         {IMPORT, 8},
+      {SHOWFINANCE, 9}, {REPORTFINANCE, 10}, {REPORTEMPLOYEE, 11},
+      {LOG, 12}};
 
   struct FinancialLog {
     int income;
@@ -87,6 +73,7 @@ public:
   /*
    * @brief: User Operation
    * @functions: Login, Logout, UserAdd, Register, Passwd, DeleteUser
+   * @stat: basic testcase 1-3 passed
    */
 
   void Login(const std::string &userID, const std::string &passWord = "") {
@@ -107,7 +94,7 @@ public:
   }
 
   void Passwd(const std::string &userID, const std::string &newPassWord) {
-    if (!canExecute(PASSWD)) {
+    if (!canExecute(PASSWDROOT)) {
       std::cout << "Invalid" << std::endl;
       return;
     }
@@ -139,10 +126,6 @@ public:
 
   void Register(const std::string &userID, const std::string &passWord,
                 const std::string &userName) {
-    if (!canExecute(REGISTER)) {
-      std::cout << "Invalid" << std::endl;
-      return;
-    }
     if (!userStorage.Register(userID, passWord, userName)) {
       std::cout << "Invalid" << std::endl;
     }
