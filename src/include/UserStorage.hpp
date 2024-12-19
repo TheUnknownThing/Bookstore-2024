@@ -278,6 +278,7 @@ public:
     if (strcmp(user.PassWord, PassWord.c_str()) == 0) {
       currentUser = user;
       LoggedInUsers.push_back(user);
+      UserSelections.push("");
       return true;
     }
     return false;
@@ -385,6 +386,14 @@ public:
       return "";
     }
     return UserSelections.top();
+  }
+
+  void setCurrentUserSelection(const std::string &selection) {
+    if (UserSelections.empty()) {
+      return;
+    }
+    UserSelections.pop();
+    UserSelections.push(selection);
   }
 };
 

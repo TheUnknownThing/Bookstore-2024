@@ -33,12 +33,10 @@ private:
   };
 
   std::map<OperationType, int> opPrivilege = {
-      {LOGIN, 0},       {LOGOUT, 1},         {USERADD, 3},
-      {REGISTER, 0},    {PASSWD, 1},         {PASSWDROOT, 7},
-      {DELETE, 7},      {SHOW, 4},           {BUY, 5},
-      {SELECT, 6},      {MODIFY, 7},         {IMPORT, 8},
-      {SHOWFINANCE, 9}, {REPORTFINANCE, 10}, {REPORTEMPLOYEE, 11},
-      {LOG, 12}};
+      {LOGIN, 0},       {LOGOUT, 1},        {USERADD, 3},        {REGISTER, 0},
+      {PASSWD, 1},      {PASSWDROOT, 7},    {DELETE, 7},         {SHOW, 1},
+      {BUY, 1},         {SELECT, 3},        {MODIFY, 3},         {IMPORT, 3},
+      {SHOWFINANCE, 7}, {REPORTFINANCE, 7}, {REPORTEMPLOYEE, 7}, {LOG, 7}};
 
   struct FinancialLog {
     int income;
@@ -62,6 +60,39 @@ private:
   Book bookStorage;
   Logs logStorage;
   Finance financeStorage;
+
+  bool validateISBN(const std::string &ISBN) {
+    if (ISBN.size() != 13) {
+      return false;
+    }
+    for (int i = 0; i < 13; i++) {
+      if (!isdigit(ISBN[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool validateKeyword(const std::string &keyword) {
+    if (keyword.size() > 60) {
+      return false;
+    }
+    return true;
+  }
+
+  bool validateQuantity(int quantity) {
+    if (quantity < 0) {
+      return false;
+    }
+    return true;
+  }
+
+  bool validatePrice(float price) {
+    if (price < 0) {
+      return false;
+    }
+    return true;
+  }
 
 public:
   BookstoreOperation() {}
@@ -149,11 +180,24 @@ public:
     if (!canExecute(SHOW)) {
       std::cout << "Invalid" << std::endl;
     }
-    // TODO
+    if (ISBN != "") {
+      bookStorage.show(ISBN);
+    } else if (BookName != "") {
+      bookStorage.show("", BookName);
+    } else if (Author != "") {
+      bookStorage.show("", "", Author);
+    } else if (Keyword != "") {
+      bookStorage.show("", "", "", Keyword);
+    } else {
+      bookStorage.show();
+    }
   }
 
   void Buy(const std::string &ISBN, int quantity) {
     if (!canExecute(BUY)) {
+      std::cout << "Invalid" << std::endl;
+    }
+    if (!bookStorage.buy(ISBN, quantity)) {
       std::cout << "Invalid" << std::endl;
     }
     // logStorage.LogAdd(BUY, userStorage.GetUserID());
@@ -163,15 +207,60 @@ public:
     if (!canExecute(SELECT)) {
       std::cout << "Invalid" << std::endl;
     }
+    if (!bookStorage.select(ISBN)) {
+      // add a new book with ISBN
+      bookStorage.addBook(ISBN, "", "", "", 0, 0);
+    } else {
+      userStorage.setCurrentUserSelection(ISBN);
+    }
     // logStorage.LogAdd(SELECT, userStorage.GetUserID());
   }
 
   void Modify(const std::string &ISBN = "", const std::string &BookName = "",
-              const std::string &Author = "", const std::string &Keyword = "") {
+              const std::string &Author = "", const std::string &Keyword = "",
+              float Price = 0) {
     if (!canExecute(MODIFY)) {
       std::cout << "Invalid" << std::endl;
     }
-
+    std::string currentISBN = userStorage.getCurrentUserSelection();
+    if (currentISBN == "") {
+      std::cout << "Invalid" << std::endl;
+    } else {
+      if (ISBN != "") {
+        // validate ISBN
+        if (!validateISBN(ISBN)) {
+          std::cout << "Invalid" << std::endl;
+          return;
+        }
+        bookStorage.modify(currentISBN, ISBN);
+      } else if (BookName != "") {
+        if (!validateKeyword(BookName)) {
+          std::cout << "Invalid" << std::endl;
+          return;
+        }
+        bookStorage.modify(currentISBN, "", BookName);
+      } else if (Author != "") {
+        if (!validateKeyword(Author)) {
+          std::cout << "Invalid" << std::endl;
+          return;
+        }
+        bookStorage.modify(currentISBN, "", "", Author);
+      } else if (Keyword != "") {
+        if (!validateKeyword(Keyword)) {
+          std::cout << "Invalid" << std::endl;
+          return;
+        }
+        bookStorage.modify(currentISBN, "", "", "", Keyword);
+      } else if (Price != 0) {
+        if (!validatePrice(Price)) {
+          std::cout << "Invalid" << std::endl;
+          return;
+        }
+        bookStorage.modify(currentISBN, "", "", "", "", Price);
+      } else {
+        std::cout << "Invalid" << std::endl;
+      }
+    }
     // logStorage.LogAdd(MODIFY, userStorage.GetUserID());
   }
 
@@ -179,7 +268,16 @@ public:
     if (!canExecute(IMPORT)) {
       std::cout << "Invalid" << std::endl;
     }
-
+    if (!validateQuantity(quantity) || !validatePrice(costPrice)) {
+      std::cout << "Invalid" << std::endl;
+      return;
+    }
+    std::string currentISBN = userStorage.getCurrentUserSelection();
+    if (currentISBN == "") {
+      std::cout << "Invalid" << std::endl;
+      return;
+    }
+    bookStorage.import(currentISBN, quantity, costPrice);
     // logStorage.LogAdd(IMPORT, userStorage.GetUserID());
   }
 

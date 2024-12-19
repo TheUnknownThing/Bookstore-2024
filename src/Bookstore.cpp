@@ -85,9 +85,7 @@ int main() {
         continue;
       }
       bookstore.DeleteUser(userID);
-    } 
-    // TODO: Add more operations
-    else if (op == "select") {
+    } else if (op == "select") {
       std::string ISBN;
       if (!(iss >> ISBN) || (iss >> op)) {
         std::cout << "Invalid" << std::endl;
@@ -128,6 +126,13 @@ int main() {
           continue;
         }
         bookstore.Modify("", "", "", Keyword);
+      } else if (type == "-price") {
+        float Price;
+        if (!(iss >> Price) || (iss >> op)) {
+          std::cout << "Invalid" << std::endl;
+          continue;
+        }
+        bookstore.Modify("", "", "", "", Price);
       } else {
         std::cout << "Invalid" << std::endl;
       }
