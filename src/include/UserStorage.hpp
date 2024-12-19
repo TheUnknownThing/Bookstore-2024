@@ -288,6 +288,7 @@ public:
       return;
     } else {
       LoggedInUsers.pop_back();
+      UserSelections.pop();
       if (LoggedInUsers.empty()) {
         currentUser.Privilege = 0;
         strcpy(currentUser.UserID, "");
@@ -375,6 +376,15 @@ public:
     }
     Delete(UserID);
     return true;
+  }
+
+
+  // the following functions are for Book operation
+  std::string getCurrentUserSelection() {
+    if (UserSelections.empty()) {
+      return "";
+    }
+    return UserSelections.top();
   }
 };
 
