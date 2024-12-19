@@ -145,6 +145,85 @@ public:
     }
 
     // show, buy, select, modify, import
+    void show(const std::string& ISBN = "", const std::string& name = "", 
+            const std::string& author = "", const std::string& keyword = "") {
+        std::vector<BookRecord> results;
+        if (!ISBN.empty()) {
+            results = findByISBN(ISBN);
+        } else if (!name.empty()) {
+            results = findByName(name);
+        } else if (!author.empty()) {
+            results = findByAuthor(author);
+        } else if (!keyword.empty()) {
+            results = findByKeyword(keyword);
+        } else {
+            // show all
+            BookRecord record;
+            int pos = sizeof(BookRecord);
+            while (pos < bookFile.getSize()) {
+                bookFile.read(record, pos);
+                results.push_back(record);
+                pos += sizeof(BookRecord);
+            }
+        }
+
+        for (const auto& record : results) {
+            // print record, TODO
+        }
+    }
+
+    bool buy(const std::string& ISBN, int quantity) {
+        auto ids = ISBNIndex.find(ISBN);
+        if (ids.empty()) return false;
+        
+        int id = *ids.begin();
+        BookRecord record;
+        bookFile.read(record, id);
+        
+        if (record.quantity < quantity) return false;
+        
+        record.quantity -= quantity;
+        bookFile.update(record, id);
+        return true;
+    }
+
+    bool modify(const std::string& ISBN, const std::string& name, 
+                const std::string& author, const std::string& keyword) {
+        std::vector<BookRecord> results;
+        if (!ISBN.empty()) {
+            results = findByISBN(ISBN);
+        } else if (!name.empty()) {
+            results = findByName(name);
+        } else if (!author.empty()) {
+            results = findByAuthor(author);
+        } else if (!keyword.empty()) {
+            results = findByKeyword(keyword);
+        } else {
+            return false;
+        }
+
+        for (const auto& record : results) {
+            // modify record, TODO
+        }
+        return true;
+    }
+
+    void import(float quantity, float costPrice) {
+        // TODO
+    }
+
+    bool select(const std::string& ISBN) {
+        auto ids = ISBNIndex.find(ISBN);
+        if (ids.empty()) return false;
+        
+        int id = *ids.begin();
+        BookRecord record;
+        bookFile.read(record, id);
+        
+        // select record, TODO
+        return true;
+    }
+
 };
 
 #endif // BOOKSTORAGE_HPP
