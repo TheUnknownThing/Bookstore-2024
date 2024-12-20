@@ -23,11 +23,11 @@ private:
 
   FileOperation<BookRecord> bookFile;
 
-  IndexManager<std::string> ISBNIndex;
-  IndexManager<std::string> nameIndex;
-  IndexManager<std::string> authorIndex;
-  IndexManager<std::string> keywordIndex;
-  IndexManager<float> priceIndex;
+  BookIndexManager<std::string> ISBNIndex;
+  BookIndexManager<std::string> nameIndex;
+  BookIndexManager<std::string> authorIndex;
+  BookIndexManager<std::string> keywordIndex;
+  BookIndexManager<float> priceIndex;
 
   int nextId;
 

@@ -210,6 +210,7 @@ public:
     if (!bookStorage.select(ISBN)) {
       // add a new book with ISBN
       bookStorage.addBook(ISBN, "", "", "", 0, 0);
+      userStorage.setCurrentUserSelection(ISBN);
     } else {
       userStorage.setCurrentUserSelection(ISBN);
     }
