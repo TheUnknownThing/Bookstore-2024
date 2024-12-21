@@ -1,128 +1,264 @@
-#ifndef BOOKINDEXMANAGER_HPP
-#define BOOKINDEXMANAGER_HPP
-
 #include "FileOperation.hpp"
+#include <cstring>
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 #define BLOCK_SIZE 600
 
-template <typename T> class BookIndexManager {
+class BookIndexManager {
 private:
-  struct IndexNode {
-    int curSize;
-    int nextPos; // 指向下一个节点的位置
-    T firstKey;
-    std::pair<T, int> keys[BLOCK_SIZE];
+  struct Record {
+    char index[61];
+    int value;
   };
 
-  FileOperation<IndexNode> indexFile;
+  struct Node {
+    Record records[BLOCK_SIZE];
+    int curSize;
+    int nextPos;
+    char firstIndex[61];
+    int firstValue;
+  };
+
+  const std::string FILE_NAME;
+
+  FileOperation<Node> bookFile;
 
 public:
+  BookIndexManager(std::string fileName) : FILE_NAME(fileName) {
+    bookFile.initialise(FILE_NAME);
+    FileInit();
+  }
 
-  BookIndexManager(const std::string &filename) : indexFile(filename) {
-    if (indexFile.isEmpty()) {
-      IndexNode dummy;
-      dummy.curSize = 0;
-      dummy.nextPos = -1;
-      indexFile.write(dummy);
+  void FileInit() {
+    if (bookFile.isEmpty()) {
+      Node node;
+      node.curSize = 0;
+      node.nextPos = -1;
+      node.firstValue = 0;
+      strcpy(node.firstIndex, "");
+      for (int i = 0; i < BLOCK_SIZE; i++) {
+        node.records[i].value = 0;
+        strcpy(node.records[i].index, "");
+      }
+      bookFile.write(node);
     }
   }
 
-  bool compNode(const IndexNode &node, const T &key) {
-    return node.firstKey < key;
-  }
-
-  std::pair<IndexNode, int> findNode(const T &key) {
-    IndexNode curNode, nextNode;
+  void PrintAll() {
+    Node cur;
     int nodePos = 0;
-    indexFile.read(curNode, nodePos);
     while (true) {
-      if (!compNode(curNode, key)) {
-        return {curNode, nodePos};
+      bookFile.read(cur, nodePos);
+      for (int i = 0; i < cur.curSize; i++) {
+        if (cur.records[i].value != 0) {
+          std::cout << cur.records[i].index << " " << cur.records[i].value
+                    << std::endl;
+        }
       }
-      if (curNode.nextPos == -1) {
-        return {curNode, nodePos};
-      }
-      nodePos = curNode.nextPos;
-      indexFile.read(curNode, nodePos);
+      std::cout << "Node Information: " << nodePos << " " << cur.curSize << " "
+                << cur.nextPos << " " << cur.firstIndex << " " << cur.firstValue
+                << std::endl;
+      std::cout << "Node End" << std::endl;
+      if (cur.nextPos == -1)
+        break;
+      nodePos = cur.nextPos;
     }
   }
 
-  void insert(const T &key, int value) {
-    auto [curNode, nodePos] = findNode(key);
-    if (curNode.curSize < BLOCK_SIZE) {
-      int i = curNode.curSize - 1;
-      while (i >= 0 && curNode.keys[i].first > key) {
-        curNode.keys[i + 1] = curNode.keys[i];
-        i--;
+  std::vector<int> getAll() {
+    Node cur;
+    int nodePos = 0;
+    std::vector<int> res;
+    while (true) {
+      bookFile.read(cur, nodePos);
+      for (int i = 0; i < cur.curSize; i++) {
+        res.push_back(cur.records[i].value);
       }
-      curNode.keys[i + 1] = {key, value};
-      curNode.curSize++;
-      indexFile.update(curNode, nodePos);
-    } else {
-      IndexNode newNode;
-      newNode.curSize = 0;
-      newNode.nextPos = curNode.nextPos;
-      curNode.nextPos = indexFile.write(newNode);
-      indexFile.update(curNode, nodePos);
+      if (cur.nextPos == -1)
+        break;
+      nodePos = cur.nextPos;
+    }
+    return res;
+  }
 
-      T midKey = curNode.keys[BLOCK_SIZE / 2].first;
-      for (int i = BLOCK_SIZE / 2 + 1; i < BLOCK_SIZE; i++) {
-        newNode.keys[newNode.curSize++] = curNode.keys[i];
-      }
-      curNode.curSize = BLOCK_SIZE / 2;
-      indexFile.update(curNode, nodePos);
+  bool CompNode(const Node &t1, const std::string &index, int value) {
+    int cmp = strcmp(t1.firstIndex, index.c_str());
+    return cmp < 0 || (cmp == 0 && t1.firstValue <= value);
+  }
 
-      if (compNode(curNode, key)) {
-        indexFile.write(newNode);
+  std::pair<Node, int> FindNode(const std::string &index, int value) {
+    Node cur, nxt;
+    int nodePos = 0;
+    bookFile.read(cur, 0);
+    if (!CompNode(cur, index, value)) {
+      return std::make_pair(cur, nodePos);
+    }
+    while (true) {
+      if (cur.nextPos == -1) {
+        return std::make_pair(cur, nodePos);
       } else {
-        indexFile.update(newNode, nodePos);
+        bookFile.read(nxt, cur.nextPos);
+        if (!CompNode(nxt, index, value) && CompNode(cur, index, value)) {
+          return std::make_pair(cur, nodePos);
+        } else {
+          nodePos = cur.nextPos;
+          cur = nxt;
+        }
       }
     }
   }
 
-  void remove(const T &key, int value) {
-    auto [curNode, nodePos] = findNode(key);
+  void Insert(const std::string &index, int value) {
+    auto [cur, nodePos] = FindNode(index, value);
+
     int i = 0;
-    while (i < curNode.curSize && curNode.keys[i].first != key) {
+    while (i < cur.curSize &&
+           (strcmp(cur.records[i].index, index.c_str()) < 0 ||
+            (strcmp(cur.records[i].index, index.c_str()) == 0 &&
+             cur.records[i].value < value))) {
       i++;
     }
-    if (i == curNode.curSize) {
+
+    if (i < cur.curSize && strcmp(cur.records[i].index, index.c_str()) == 0 &&
+        cur.records[i].value == value) {
       return;
     }
-    for (int j = i; j < curNode.curSize - 1; j++) {
-      curNode.keys[j] = curNode.keys[j + 1];
-    }
-    curNode.curSize--;
-    indexFile.update(curNode, nodePos);
 
-    if (curNode.curSize < BLOCK_SIZE / 4 && curNode.nextPos != -1) {
-      IndexNode nextNode;
-      int nextNodePos = curNode.nextPos;
-      indexFile.read(nextNode, nextNodePos);
-      if (curNode.curSize + nextNode.curSize < BLOCK_SIZE) {
-        T midKey = nextNode.keys[0].first;
-        for (int i = 0; i < nextNode.curSize; i++) {
-          curNode.keys[curNode.curSize++] = nextNode.keys[i];
+    for (int j = cur.curSize; j > i; j--) {
+      cur.records[j] = cur.records[j - 1];
+    }
+    strcpy(cur.records[i].index, index.c_str());
+    cur.records[i].value = value;
+    cur.curSize++;
+
+    strcpy(cur.firstIndex, cur.records[0].index);
+    cur.firstValue = cur.records[0].value;
+
+    if (cur.curSize < BLOCK_SIZE) {
+      bookFile.update(cur, nodePos);
+    } else {
+      Node newNode;
+      int mid = cur.curSize / 2;
+      newNode.curSize = cur.curSize - mid;
+      cur.curSize = mid;
+
+      memcpy(newNode.records, cur.records + mid,
+             sizeof(Record) * newNode.curSize);
+
+      strcpy(cur.firstIndex, cur.records[0].index);
+      cur.firstValue = cur.records[0].value;
+
+      strcpy(newNode.firstIndex, newNode.records[0].index);
+      newNode.firstValue = newNode.records[0].value;
+      newNode.nextPos = cur.nextPos;
+      cur.nextPos = bookFile.write(newNode);
+
+      bookFile.update(cur, nodePos);
+    }
+  }
+
+  void Delete(const std::string &index, int value) {
+    auto [cur, nodePos] = FindNode(index, value);
+
+    int i = 0;
+    while (i < cur.curSize &&
+           !(strcmp(cur.records[i].index, index.c_str()) == 0 &&
+             cur.records[i].value == value)) {
+      i++;
+    }
+    if (i == cur.curSize) {
+      return;
+    }
+
+    for (int j = i; j < cur.curSize - 1; j++) {
+      cur.records[j] = cur.records[j + 1];
+    }
+    cur.curSize--;
+
+    if (cur.curSize > 0) {
+      strcpy(cur.firstIndex, cur.records[0].index);
+      cur.firstValue = cur.records[0].value;
+    } else {
+      strcpy(cur.firstIndex, "");
+      cur.firstValue = 0;
+    }
+
+    bookFile.update(cur, nodePos);
+
+    if (cur.curSize < BLOCK_SIZE / 4 && cur.nextPos != -1) {
+      Node nextNode;
+      int nextNodePos = cur.nextPos;
+      bookFile.read(nextNode, nextNodePos);
+
+      if (cur.curSize + nextNode.curSize < BLOCK_SIZE) {
+        memcpy(cur.records + cur.curSize, nextNode.records,
+               sizeof(Record) * nextNode.curSize);
+        cur.curSize += nextNode.curSize;
+        cur.nextPos = nextNode.nextPos;
+
+        strcpy(cur.firstIndex, cur.records[0].index);
+        cur.firstValue = cur.records[0].value;
+
+        bookFile.update(cur, nodePos);
+        bookFile.Delete(nextNodePos);
+      }
+    }
+  }
+
+  // delete all records with index
+  void Delete(const std::string &index) {
+    Node cur, nxt;
+    int nodePos = 0;
+    bookFile.read(cur, 0);
+    while (true) {
+      int i = 0;
+      while (i < cur.curSize &&
+             strcmp(cur.records[i].index, index.c_str()) != 0) {
+        i++;
+      }
+      if (i < cur.curSize) {
+        for (int j = i; j < cur.curSize - 1; j++) {
+          cur.records[j] = cur.records[j + 1];
         }
-        curNode.nextPos = nextNode.nextPos;
-        indexFile.update(curNode, nodePos);
-        indexFile.Delete(nextNodePos);
+        cur.curSize--;
+        if (cur.curSize > 0) {
+          strcpy(cur.firstIndex, cur.records[0].index);
+          cur.firstValue = cur.records[0].value;
+        } else {
+          strcpy(cur.firstIndex, "");
+          cur.firstValue = 0;
+        }
+        bookFile.update(cur, nodePos);
       }
+      if (cur.nextPos == -1) {
+        break;
+      }
+      nodePos = cur.nextPos;
+      bookFile.read(cur, nodePos);
     }
   }
 
-  std::vector<int> find(const T &key) {
-    std::vector<int> results;
-    auto [curNode, nodePos] = findNode(key);
-    for (int i = 0; i < curNode.curSize; i++) {
-      if (curNode.keys[i].first == key) {
-        results.push_back(curNode.keys[i].second);
+  std::vector<int> Find(const std::string &index) {
+    Node cur;
+    int nodePos = 0;
+    std::vector<int> res;
+    while (true) {
+      bookFile.read(cur, nodePos);
+      if (strcmp(cur.firstIndex, index.c_str()) > 0) {
+        break;
       }
+      for (int i = 0; i < cur.curSize; i++) {
+        if (strcmp(cur.records[i].index, index.c_str()) == 0) {
+          /*std::cout << cur.records[i].value << " ";*/
+          res.push_back(cur.records[i].value);
+        }
+      }
+      if (cur.nextPos == -1)
+        break;
+      nodePos = cur.nextPos;
     }
-    return results;
+    return res;
   }
-
 };
-
-#endif // BOOKINDEXMANAGER_HPP

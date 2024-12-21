@@ -2,7 +2,7 @@
 #include <iostream>
 
 int main() {
-    Book bookManager;
+    BookIndexManager bookManager;
 
     std::cout << "Add books" << std::endl;
 

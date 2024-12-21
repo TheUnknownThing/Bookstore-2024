@@ -58,8 +58,6 @@ private:
 
   User userStorage;
   Book bookStorage;
-  Logs logStorage;
-  Finance financeStorage;
 
   bool validateISBN(const std::string &ISBN) {
     if (ISBN.size() != 13) {
@@ -174,7 +172,6 @@ public:
    * @brief: Book Operation
    * @functions: Show, Buy, Select, Modify, Import
    */
-
   void Show(const std::string &ISBN = "", const std::string &BookName = "",
             const std::string &Author = "", const std::string &Keyword = "") {
     if (!canExecute(SHOW)) {
@@ -209,7 +206,7 @@ public:
     }
     if (!bookStorage.select(ISBN)) {
       // add a new book with ISBN
-      bookStorage.addBook(ISBN, "", "", "", 0, 0);
+      bookStorage.addBook(ISBN);
       userStorage.setCurrentUserSelection(ISBN);
     } else {
       userStorage.setCurrentUserSelection(ISBN);
@@ -281,7 +278,6 @@ public:
     bookStorage.import(currentISBN, quantity, costPrice);
     // logStorage.LogAdd(IMPORT, userStorage.GetUserID());
   }
-
   /*
    * @brief: Finance Operation
    * @functions: ShowFinance, ReportFinance
@@ -322,7 +318,7 @@ public:
     if (!canExecute(LOG)) {
       std::cout << "Invalid" << std::endl;
     }
-    logStorage.ShowLog();
+    
   }
 };
 
