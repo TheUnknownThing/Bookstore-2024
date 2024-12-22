@@ -4,6 +4,7 @@
 #include "BookIndexManager.hpp"
 #include "FileOperation.hpp"
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -33,12 +34,7 @@ public:
         authorIndex("author_index.dat"), keywordIndex("keyword_index.dat"),
         nextId(0) {
     bookFile.initialise("book.dat");
-    if (bookFile.isEmpty()) {
-      BookRecord dummy;
-      dummy.id = -1;
-      bookFile.write(dummy);
-      nextId = 0;
-    } else {
+    if (!bookFile.isEmpty()) {
       BookRecord lastRecord;
       bookFile.read(lastRecord, bookFile.getSize() - sizeof(BookRecord));
       nextId = lastRecord.id + 1;
@@ -53,10 +49,20 @@ public:
       return;
     } else {
       BookRecord newRecord;
+      // std::cout << "Next ID: " << nextId << std::endl; // debug
       newRecord.id = nextId++;
       strcpy(newRecord.ISBN, ISBN.c_str());
+      newRecord.quantity = 0;
       bookFile.write(newRecord);
-      ISBNIndex.Insert(ISBN, newRecord.id);
+      // debug
+      /*std::cout << "Inserted:" << std::endl;
+      BookRecord temp;
+      bookFile.read(temp, (nextId - 1) * sizeof(BookRecord));
+      std::cout << temp.ISBN << " " << temp.id << std::endl;*/
+      if (!ISBNIndex.Insert(ISBN, newRecord.id)) {
+        std::cout << "Invalid" << std::endl;
+        return;
+      }
     }
   }
 
@@ -65,7 +71,7 @@ public:
     std::vector<BookRecord> records;
     for (int id : ids) {
       BookRecord record;
-      bookFile.read(record, id);
+      bookFile.read(record, id * sizeof(BookRecord));
       records.push_back(record);
     }
     return records;
@@ -76,7 +82,7 @@ public:
     std::vector<BookRecord> records;
     for (int id : ids) {
       BookRecord record;
-      bookFile.read(record, id);
+      bookFile.read(record, id * sizeof(BookRecord));
       records.push_back(record);
     }
     return records;
@@ -87,7 +93,7 @@ public:
     std::vector<BookRecord> records;
     for (int id : ids) {
       BookRecord record;
-      bookFile.read(record, id);
+      bookFile.read(record, id * sizeof(BookRecord));
       records.push_back(record);
     }
     return records;
@@ -98,7 +104,7 @@ public:
     std::vector<BookRecord> records;
     for (int id : ids) {
       BookRecord record;
-      bookFile.read(record, id);
+      bookFile.read(record, id * sizeof(BookRecord));
       records.push_back(record);
     }
     return records;
@@ -109,7 +115,7 @@ public:
     std::vector<BookRecord> records;
     for (int id : ids) {
       BookRecord record;
-      bookFile.read(record, id);
+      bookFile.read(record, id * sizeof(BookRecord));
       records.push_back(record);
     }
     return records;
@@ -122,7 +128,7 @@ public:
     } else {
       for (int id : ids) {
         BookRecord record;
-        bookFile.read(record, id);
+        bookFile.read(record, id * sizeof(BookRecord));
         ISBNIndex.Delete(record.ISBN, record.id);
         nameIndex.Delete(record.BookName, record.id);
         authorIndex.Delete(record.Author, record.id);
@@ -147,11 +153,20 @@ public:
     } else {
       // show all
       records = getAll();
+      // debug
+      /*ISBNIndex.PrintAll();
+      nameIndex.PrintAll();
+      authorIndex.PrintAll();
+      keywordIndex.PrintAll();*/
     }
     for (const auto &record : records) {
       std::cout << record.ISBN << "\t" << record.BookName << "\t"
                 << record.Author << "\t" << record.Keyword << "\t"
-                << record.quantity << "\t" << record.price << std::endl;
+                << std::setprecision(2) << std::fixed << record.price << "\t"
+                << record.quantity << std::endl;
+    }
+    if (records.empty()) {
+      std::cout << std::endl;
     }
   }
 
@@ -161,12 +176,14 @@ public:
       return false;
     } else {
       BookRecord record;
-      bookFile.read(record, ids[0]);
+      bookFile.read(record, ids[0] * sizeof(BookRecord));
       if (record.quantity < quantity) {
         return false;
       }
       record.quantity -= quantity;
-      bookFile.update(record, ids[0]);
+      bookFile.update(record, ids[0] * sizeof(BookRecord));
+      std::cout << std::setprecision(2) << std::fixed << record.price * quantity
+                << std::endl;
       return true;
     }
   }
@@ -180,7 +197,7 @@ public:
       return false;
     } else {
       BookRecord record;
-      bookFile.read(record, ids[0]);
+      bookFile.read(record, ids[0] * sizeof(BookRecord));
       if (currentISBN == ISBN) {
         // std::cout << "Invalid" << std::endl;
         return false;
@@ -192,39 +209,51 @@ public:
           return false;
         }
         ISBNIndex.Delete(currentISBN, record.id);
-        ISBNIndex.Insert(ISBN, record.id);
+        // ISBNIndex.Insert(ISBN, record.id);
+        if (!ISBNIndex.Insert(ISBN, record.id)) {
+          // std::cout << "Invalid" << std::endl;
+          return false;
+        }
         strcpy(record.ISBN, ISBN.c_str());
       } else if (name != "") {
-        std::vector<int> newIds = nameIndex.Find(name);
-        if (!newIds.empty()) {
+        nameIndex.Delete(record.BookName, record.id);
+        // nameIndex.Insert(name, record.id);
+        if (!nameIndex.Insert(name, record.id)) {
           // std::cout << "Invalid" << std::endl;
           return false;
         }
-        nameIndex.Delete(record.BookName, record.id);
-        nameIndex.Insert(name, record.id);
         strcpy(record.BookName, name.c_str());
       } else if (author != "") {
-        std::vector<int> newIds = authorIndex.Find(author);
-        if (!newIds.empty()) {
+        authorIndex.Delete(record.Author, record.id);
+        // authorIndex.Insert(author, record.id);
+        if (!authorIndex.Insert(author, record.id)) {
           // std::cout << "Invalid" << std::endl;
           return false;
         }
-        authorIndex.Delete(record.Author, record.id);
-        authorIndex.Insert(author, record.id);
         strcpy(record.Author, author.c_str());
       } else if (keyword != "") {
-        std::vector<int> newIds = keywordIndex.Find(keyword);
-        if (!newIds.empty()) {
-          // std::cout << "Invalid" << std::endl;
-          return false;
+        // Remove old keywords
+        std::istringstream oldStream(record.Keyword);
+        std::string oldKey;
+        while (std::getline(oldStream, oldKey, '|')) {
+          if (!oldKey.empty()) {
+            keywordIndex.Delete(oldKey, record.id);
+          }
         }
-        keywordIndex.Delete(record.Keyword, record.id);
-        keywordIndex.Insert(keyword, record.id);
+
+        std::string newKey;
+        std::istringstream newStream(keyword);
+        while (std::getline(newStream, newKey, '|')) {
+          if (!newKey.empty()) {
+            keywordIndex.Insert(newKey, record.id);
+          }
+        }
+
         strcpy(record.Keyword, keyword.c_str());
       } else if (price != 0) {
         record.price = price;
       }
-      bookFile.update(record, ids[0]);
+      bookFile.update(record, ids[0] * sizeof(BookRecord));
     }
     return true;
   }
@@ -236,9 +265,9 @@ public:
       return false;
     } else {
       BookRecord record;
-      bookFile.read(record, ids[0]);
+      bookFile.read(record, ids[0] * sizeof(BookRecord));
       record.quantity += quantity;
-      bookFile.update(record, ids[0]);
+      bookFile.update(record, ids[0] * sizeof(BookRecord));
     }
     return true;
   }

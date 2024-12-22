@@ -175,7 +175,7 @@ public:
   void Show(const std::string &ISBN = "", const std::string &BookName = "",
             const std::string &Author = "", const std::string &Keyword = "") {
     if (!canExecute(SHOW)) {
-      std::cout << "Invalid" << std::endl;
+      std::cout << "Error: Insufficient privileges to show books" << std::endl;
     }
     if (ISBN != "") {
       bookStorage.show(ISBN);
@@ -192,91 +192,90 @@ public:
 
   void Buy(const std::string &ISBN, int quantity) {
     if (!canExecute(BUY)) {
-      std::cout << "Invalid" << std::endl;
+      std::cout << "Error: Insufficient privileges to make purchases"
+                << std::endl;
     }
     if (!bookStorage.buy(ISBN, quantity)) {
-      std::cout << "Invalid" << std::endl;
+      std::cout << "Error: Book not found or insufficient stock" << std::endl;
     }
-    // logStorage.LogAdd(BUY, userStorage.GetUserID());
   }
 
   void Select(const std::string &ISBN) {
     if (!canExecute(SELECT)) {
-      std::cout << "Invalid" << std::endl;
+      std::cout << "Error: Insufficient privileges to select books"
+                << std::endl;
     }
     if (!bookStorage.select(ISBN)) {
-      // add a new book with ISBN
       bookStorage.addBook(ISBN);
       userStorage.setCurrentUserSelection(ISBN);
     } else {
       userStorage.setCurrentUserSelection(ISBN);
     }
-    // logStorage.LogAdd(SELECT, userStorage.GetUserID());
   }
 
   void Modify(const std::string &ISBN = "", const std::string &BookName = "",
               const std::string &Author = "", const std::string &Keyword = "",
               float Price = 0) {
     if (!canExecute(MODIFY)) {
-      std::cout << "Invalid" << std::endl;
+      std::cout << "Error: Insufficient privileges to modify books"
+                << std::endl;
     }
     std::string currentISBN = userStorage.getCurrentUserSelection();
     if (currentISBN == "") {
-      std::cout << "Invalid" << std::endl;
+      std::cout << "Error: No book selected for modification" << std::endl;
     } else {
       if (ISBN != "") {
-        // validate ISBN
         if (!validateISBN(ISBN)) {
-          std::cout << "Invalid" << std::endl;
+          std::cout << "Error: Invalid ISBN format" << std::endl;
           return;
         }
         bookStorage.modify(currentISBN, ISBN);
+        userStorage.setCurrentUserSelection(ISBN);
       } else if (BookName != "") {
         if (!validateKeyword(BookName)) {
-          std::cout << "Invalid" << std::endl;
+          std::cout << "Error: Invalid book name format" << std::endl;
           return;
         }
         bookStorage.modify(currentISBN, "", BookName);
       } else if (Author != "") {
         if (!validateKeyword(Author)) {
-          std::cout << "Invalid" << std::endl;
+          std::cout << "Error: Invalid author name format" << std::endl;
           return;
         }
         bookStorage.modify(currentISBN, "", "", Author);
       } else if (Keyword != "") {
         if (!validateKeyword(Keyword)) {
-          std::cout << "Invalid" << std::endl;
+          std::cout << "Error: Invalid keyword format" << std::endl;
           return;
         }
         bookStorage.modify(currentISBN, "", "", "", Keyword);
       } else if (Price != 0) {
         if (!validatePrice(Price)) {
-          std::cout << "Invalid" << std::endl;
+          std::cout << "Error: Invalid price value" << std::endl;
           return;
         }
         bookStorage.modify(currentISBN, "", "", "", "", Price);
       } else {
-        std::cout << "Invalid" << std::endl;
+        std::cout << "Error: No modification parameters provided" << std::endl;
       }
     }
-    // logStorage.LogAdd(MODIFY, userStorage.GetUserID());
   }
 
   void Import(float quantity, float costPrice) {
     if (!canExecute(IMPORT)) {
-      std::cout << "Invalid" << std::endl;
+      std::cout << "Error: Insufficient privileges to import books"
+                << std::endl;
     }
     if (!validateQuantity(quantity) || !validatePrice(costPrice)) {
-      std::cout << "Invalid" << std::endl;
+      std::cout << "Error: Invalid quantity or cost price values" << std::endl;
       return;
     }
     std::string currentISBN = userStorage.getCurrentUserSelection();
     if (currentISBN == "") {
-      std::cout << "Invalid" << std::endl;
+      std::cout << "Error: No book selected for import" << std::endl;
       return;
     }
     bookStorage.import(currentISBN, quantity, costPrice);
-    // logStorage.LogAdd(IMPORT, userStorage.GetUserID());
   }
   /*
    * @brief: Finance Operation
@@ -318,7 +317,6 @@ public:
     if (!canExecute(LOG)) {
       std::cout << "Invalid" << std::endl;
     }
-    
   }
 };
 

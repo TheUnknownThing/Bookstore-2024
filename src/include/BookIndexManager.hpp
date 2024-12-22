@@ -52,10 +52,8 @@ public:
     while (true) {
       bookFile.read(cur, nodePos);
       for (int i = 0; i < cur.curSize; i++) {
-        if (cur.records[i].value != 0) {
-          std::cout << cur.records[i].index << " " << cur.records[i].value
-                    << std::endl;
-        }
+        std::cout << cur.records[i].index << " " << cur.records[i].value
+                  << std::endl;
       }
       std::cout << "Node Information: " << nodePos << " " << cur.curSize << " "
                 << cur.nextPos << " " << cur.firstIndex << " " << cur.firstValue
@@ -110,7 +108,7 @@ public:
     }
   }
 
-  void Insert(const std::string &index, int value) {
+  bool Insert(const std::string &index, int value) {
     auto [cur, nodePos] = FindNode(index, value);
 
     int i = 0;
@@ -123,7 +121,7 @@ public:
 
     if (i < cur.curSize && strcmp(cur.records[i].index, index.c_str()) == 0 &&
         cur.records[i].value == value) {
-      return;
+      return false;
     }
 
     for (int j = cur.curSize; j > i; j--) {
@@ -157,6 +155,7 @@ public:
 
       bookFile.update(cur, nodePos);
     }
+    return true;
   }
 
   void Delete(const std::string &index, int value) {
@@ -205,6 +204,7 @@ public:
         bookFile.Delete(nextNodePos);
       }
     }
+    return;
   }
 
   // delete all records with index
