@@ -6,6 +6,7 @@
 #include "LogsStorage.hpp"
 #include "UserStorage.hpp"
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <stdexcept>
@@ -58,6 +59,7 @@ private:
 
   User userStorage;
   Book bookStorage;
+  Finance financeStorage;
 
   bool validateISBN(const std::string &ISBN) {
     if (ISBN.size() != 13) {
@@ -106,6 +108,7 @@ public:
    */
 
   void Login(const std::string &userID, const std::string &passWord = "") {
+    // userStorage.PrintAll(); // debug
     if (!userStorage.Login(userID, passWord)) {
       std::cout << "Invalid" << std::endl;
     }
@@ -195,8 +198,11 @@ public:
       std::cout << "Error: Insufficient privileges to make purchases"
                 << std::endl;
     }
-    if (!bookStorage.buy(ISBN, quantity)) {
+    auto [flag, price] = bookStorage.buy(ISBN, quantity);
+    if (!flag) {
       std::cout << "Error: Book not found or insufficient stock" << std::endl;
+    } else {
+      financeStorage.AddIncome(price);
     }
   }
 
@@ -276,17 +282,32 @@ public:
       return;
     }
     bookStorage.import(currentISBN, quantity, costPrice);
+    financeStorage.AddOutcome(quantity * costPrice);
   }
   /*
    * @brief: Finance Operation
    * @functions: ShowFinance, ReportFinance
    */
 
-  void ShowFinance() {
+  void ShowFinance(int count = -1) {
     if (!canExecute(SHOWFINANCE)) {
       std::cout << "Invalid" << std::endl;
     }
-    // TODO
+    if (count == -1) {
+      // show all
+      float totalIncome = 0, totalOutcome = 0;
+      totalIncome = financeStorage.GetTotalIncome();
+      totalOutcome = financeStorage.GetTotalOutcome();
+      std::cout << std::setprecision(2) << std::fixed << "+ " << totalIncome
+                << " - " << totalOutcome << std::endl;
+    } else if (count == 0) {
+      std::cout << std::endl;
+    } else {
+      // show count records
+      auto [income, outcome] = financeStorage.GetLastNSum(count);
+      std::cout << std::setprecision(2) << std::fixed << "+ " << income << " - "
+                << outcome << std::endl;
+    }
   }
 
   void ReportFinance() {

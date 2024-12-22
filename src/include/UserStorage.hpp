@@ -55,8 +55,12 @@ public:
       node.nextPos = -1;
       memset(&node.firstUser, 0, sizeof(UserInfo));
       nodeFile.write(node);
-
-      UserAdd("root", "sjtu", "root", 7);
+      UserInfo root;
+      root.Privilege = 7;
+      strcpy(root.UserID, "root");
+      strcpy(root.PassWord, "sjtu");
+      strcpy(root.UserName, "root");
+      InsertUser(root);
     }
     if (nodeFile.isEmpty()) {
       Node node;
@@ -378,7 +382,6 @@ public:
     Delete(UserID);
     return true;
   }
-
 
   // the following functions are for Book operation
   std::string getCurrentUserSelection() {

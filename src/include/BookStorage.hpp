@@ -170,21 +170,21 @@ public:
     }
   }
 
-  bool buy(const std::string &ISBN, int quantity) {
+  std::pair<bool, float> buy(const std::string &ISBN, int quantity) {
     std::vector<int> ids = ISBNIndex.Find(ISBN);
     if (ids.empty()) {
-      return false;
+      return {false, 0};
     } else {
       BookRecord record;
       bookFile.read(record, ids[0] * sizeof(BookRecord));
       if (record.quantity < quantity) {
-        return false;
+        return {false, 0};
       }
       record.quantity -= quantity;
       bookFile.update(record, ids[0] * sizeof(BookRecord));
       std::cout << std::setprecision(2) << std::fixed << record.price * quantity
                 << std::endl;
-      return true;
+      return {true, record.price * quantity};
     }
   }
 

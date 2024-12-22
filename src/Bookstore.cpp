@@ -1,4 +1,5 @@
 #include "BookstoreOperation.hpp"
+#include <cstdio>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -245,6 +246,28 @@ int main() {
           Keyword = Keyword.substr(1, Keyword.length() - 2);
         }
         bookstore.Show("", "", "", Keyword);
+      } else if (type == "finance") {
+        int count = -1;
+        if (iss >> count) {
+          if (count < 0) {
+            std::cout << "Error: Invalid count value for show finance command"
+                      << std::endl;
+            continue;
+          } else if (iss >> op) {
+            std::cout << "Error: Extra parameters after count in show finance "
+                         "command"
+                      << std::endl;
+            continue;
+          }
+          bookstore.ShowFinance(count);
+        } else {
+          if (iss >> op) {
+            std::cout << "Error: Extra parameters after finance in show command"
+                      << std::endl;
+            continue;
+          }
+          bookstore.ShowFinance();
+        }
       } else {
         std::cout << "Error: Invalid show type. Must be "
                      "-ISBN=/-name=/-author=/-keyword="
