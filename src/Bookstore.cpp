@@ -17,8 +17,7 @@ int main() {
   BookstoreOperation bookstore;
   while (true) {
     std::getline(std::cin, line);
-    if (line.empty())
-      continue;
+    if (line.empty()) break;
     std::istringstream iss(line);
     iss >> op;
     if (op == "exit" || op == "quit") {
