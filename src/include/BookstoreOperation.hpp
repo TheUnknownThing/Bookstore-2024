@@ -62,15 +62,7 @@ private:
   Finance financeStorage;
 
   bool validateISBN(const std::string &ISBN) {
-    if (ISBN.size() != 13) {
-      return false;
-    }
-    for (int i = 0; i < 13; i++) {
-      if (!isdigit(ISBN[i])) {
-        return false;
-      }
-    }
-    return true;
+    return (ISBN.size() <= 20 && ISBN.size() > 0);
   }
 
   bool validateKeyword(const std::string &keyword) {
