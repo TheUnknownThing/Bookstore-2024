@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#define BLOCK_SIZE 600
+#define BLOCK_SIZE 1000
 
 class Finance {
 private:
