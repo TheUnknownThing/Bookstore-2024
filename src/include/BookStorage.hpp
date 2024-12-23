@@ -195,6 +195,11 @@ public:
     }
   }
 
+  bool isISBNExists(const std::string &ISBN) {
+    std::vector<int> ids = ISBNIndex.Find(ISBN);
+    return !ids.empty();
+  }
+
   bool modify(const std::string &currentISBN = "", const std::string &ISBN = "",
               const std::string &name = "", const std::string &author = "",
               const std::string &keyword = "", float price = -1) {
