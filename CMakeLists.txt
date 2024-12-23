@@ -7,6 +7,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
+option(DEBUG_MODE "Build for debugging" OFF)
+if(DEBUG_MODE)
+    add_definitions(-DDEBUG_MODE)
+endif()
+
 # Add the executable
 add_executable(code src/Bookstore.cpp)
 
