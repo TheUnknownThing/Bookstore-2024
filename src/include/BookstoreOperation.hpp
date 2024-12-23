@@ -111,6 +111,7 @@ public:
     // userStorage.PrintAll(); // debug
     if (!userStorage.Login(userID, passWord)) {
       std::cout << "Invalid" << std::endl;
+      return;
     }
   }
 
@@ -160,6 +161,7 @@ public:
                 const std::string &userName) {
     if (!userStorage.Register(userID, passWord, userName)) {
       std::cout << "Invalid" << std::endl;
+      return;
     }
   }
 
@@ -179,6 +181,7 @@ public:
             const std::string &Author = "", const std::string &Keyword = "") {
     if (!canExecute(SHOW)) {
       std::cout << "Error: Insufficient privileges to show books" << std::endl;
+      return;
     }
     if (ISBN != "") {
       bookStorage.show(ISBN);
@@ -197,6 +200,7 @@ public:
     if (!canExecute(BUY)) {
       std::cout << "Error: Insufficient privileges to make purchases"
                 << std::endl;
+      return;
     }
     auto [flag, price] = bookStorage.buy(ISBN, quantity);
     if (!flag) {
@@ -210,6 +214,7 @@ public:
     if (!canExecute(SELECT)) {
       std::cout << "Error: Insufficient privileges to select books"
                 << std::endl;
+      return;
     }
     if (!bookStorage.select(ISBN)) {
       bookStorage.addBook(ISBN);
@@ -225,6 +230,7 @@ public:
     if (!canExecute(MODIFY)) {
       std::cout << "Error: Insufficient privileges to modify books"
                 << std::endl;
+      return;
     }
     std::string currentISBN = userStorage.getCurrentUserSelection();
     if (currentISBN == "") {
@@ -271,6 +277,7 @@ public:
     if (!canExecute(IMPORT)) {
       std::cout << "Error: Insufficient privileges to import books"
                 << std::endl;
+      return;
     }
     if (!validateQuantity(quantity) || !validatePrice(costPrice)) {
       std::cout << "Error: Invalid quantity or cost price values" << std::endl;
@@ -281,8 +288,8 @@ public:
       std::cout << "Error: No book selected for import" << std::endl;
       return;
     }
-    bookStorage.import(currentISBN, quantity, costPrice);
-    financeStorage.AddOutcome(quantity * costPrice);
+    bookStorage.import(currentISBN, quantity);
+    financeStorage.AddOutcome(costPrice);
   }
   /*
    * @brief: Finance Operation
@@ -292,6 +299,7 @@ public:
   void ShowFinance(int count = -1) {
     if (!canExecute(SHOWFINANCE)) {
       std::cout << "Invalid" << std::endl;
+      return;
     }
     if (count == -1) {
       // show all
@@ -305,8 +313,12 @@ public:
     } else {
       // show count records
       auto [income, outcome] = financeStorage.GetLastNSum(count);
-      std::cout << std::setprecision(2) << std::fixed << "+ " << income << " - "
-                << outcome << std::endl;
+      if (income == -1 && outcome == -1) {
+        std::cout << "Invalid" << std::endl;
+      } else {
+        std::cout << std::setprecision(2) << std::fixed << "+ " << income
+                  << " - " << outcome << std::endl;
+      }
     }
   }
 

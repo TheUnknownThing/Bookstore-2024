@@ -258,7 +258,7 @@ public:
     return true;
   }
 
-  bool import(const std::string &currentISBN, float quantity, float costPrice) {
+  bool import(const std::string &currentISBN, float quantity) {
     std::vector<int> ids = ISBNIndex.Find(currentISBN);
     if (ids.empty()) {
       // std::cout << "Invalid" << std::endl;
