@@ -54,6 +54,10 @@ public:
       // std::cout << "Next ID: " << nextId << std::endl; // debug
       newRecord.id = nextId++;
       strcpy(newRecord.ISBN, ISBN.c_str());
+      strcpy(newRecord.BookName, "");
+      strcpy(newRecord.Author, "");
+      strcpy(newRecord.Keyword, "");
+      newRecord.price = 0;
       newRecord.quantity = 0;
       bookFile.write(newRecord);
       // debug
