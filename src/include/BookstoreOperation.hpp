@@ -236,7 +236,7 @@ public:
 
   void Modify(const std::string &ISBN = "", const std::string &BookName = "",
               const std::string &Author = "", const std::string &Keyword = "",
-              float Price = 0) {
+              float Price = -1) {
     if (!canExecute(MODIFY)) {
       printError("Insufficient privileges to modify books");
       return;
@@ -274,7 +274,7 @@ public:
           return;
         }
         bookStorage.modify(currentISBN, "", "", "", Keyword);
-      } else if (Price != 0) {
+      } else if (Price != -1) {
         if (!validatePrice(Price)) {
           printError("Invalid price value");
           return;

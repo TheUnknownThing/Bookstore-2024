@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-#define BLOCK_SIZE 600
+#define BLOCK_SIZE 1000
 
 class Logs {
 private:

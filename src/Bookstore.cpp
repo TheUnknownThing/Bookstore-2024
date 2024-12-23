@@ -18,7 +18,7 @@ int main() {
         std::cout << "Invalid" << std::endl;
         continue;
       }
-      exit(0);
+      break;
     } else if (op == "su") {
       std::string userID, passWord;
       std::vector<std::string> inputs;

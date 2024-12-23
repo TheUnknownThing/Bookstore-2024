@@ -28,6 +28,7 @@ private:
 
   int nextId;
 
+
 public:
   Book()
       : ISBNIndex("isbn_index.dat"), nameIndex("name_index.dat"),
@@ -162,7 +163,7 @@ public:
     for (const auto &record : records) {
       std::cout << record.ISBN << "\t" << record.BookName << "\t"
                 << record.Author << "\t" << record.Keyword << "\t"
-                << std::setprecision(2) << std::fixed << record.price << "\t"
+                << std::fixed << std::setprecision(2) << record.price << "\t"
                 << record.quantity << std::endl;
     }
     if (records.empty()) {
@@ -190,7 +191,7 @@ public:
 
   bool modify(const std::string &currentISBN = "", const std::string &ISBN = "",
               const std::string &name = "", const std::string &author = "",
-              const std::string &keyword = "", float price = 0) {
+              const std::string &keyword = "", float price = -1) {
     std::vector<int> ids = ISBNIndex.Find(currentISBN);
     if (ids.empty()) {
       // std::cout << "Invalid" << std::endl;
@@ -250,7 +251,7 @@ public:
         }
 
         strcpy(record.Keyword, keyword.c_str());
-      } else if (price != 0) {
+      } else if (price != -1) {
         record.price = price;
       }
       bookFile.update(record, ids[0] * sizeof(BookRecord));
