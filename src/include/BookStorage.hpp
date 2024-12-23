@@ -72,6 +72,21 @@ public:
     }
   }
 
+  int findIDByISBN(const std::string &ISBN) {
+    std::vector<int> ids = ISBNIndex.Find(ISBN);
+    if (ids.empty()) {
+      return -1;
+    } else {
+      return ids[0];
+    }
+  }
+
+  std::string getISBNByID(int id) {
+    BookRecord record;
+    bookFile.read(record, id * sizeof(BookRecord));
+    return record.ISBN;
+  }
+
   std::vector<BookRecord> findByISBN(const std::string &ISBN) {
     std::vector<int> ids = ISBNIndex.Find(ISBN);
     std::vector<BookRecord> records;

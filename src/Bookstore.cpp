@@ -17,7 +17,8 @@ int main() {
   BookstoreOperation bookstore;
   while (true) {
     std::getline(std::cin, line);
-    if (line.empty()) break;
+    if (line.empty())
+      break;
     std::istringstream iss(line);
     iss >> op;
     if (op == "exit" || op == "quit") {
@@ -104,110 +105,110 @@ int main() {
         continue;
       }
       bookstore.Select(ISBN);
-    }     else if (op == "modify") {
-        std::string ISBN, BookName, Author, Keywords;
-        float Price = -1;
-        std::string type;
-        bool hasError = false;
-    
-        while (iss >> type && !hasError) {
-            if (type.substr(0, 6) == "-ISBN=") {
-                if (!ISBN.empty()) {
-                    printError("Duplicate ISBN parameter");
-                    hasError = true;
-                    break;
-                }
-                ISBN = type.substr(6);
-                if (ISBN.empty()) {
-                    printError("ISBN cannot be empty");
-                    hasError = true;
-                    break;
-                }
-            } else if (type.substr(0, 6) == "-name=") {
-                if (!BookName.empty()) {
-                    printError("Duplicate name parameter");
-                    hasError = true;
-                    break;
-                }
-                BookName = type.substr(6);
-                if (BookName.empty()) {
-                    printError("Book name cannot be empty");
-                    hasError = true;
-                    break;
-                }
-                if (BookName.front() == '"' && BookName.back() == '"') {
-                    BookName = BookName.substr(1, BookName.length() - 2);
-                }
-            } else if (type.substr(0, 8) == "-author=") {
-                if (!Author.empty()) {
-                    printError("Duplicate author parameter");
-                    hasError = true;
-                    break;
-                }
-                Author = type.substr(8);
-                if (Author.empty()) {
-                    printError("Author cannot be empty");
-                    hasError = true;
-                    break;
-                }
-                if (Author.front() == '"' && Author.back() == '"') {
-                    Author = Author.substr(1, Author.length() - 2);
-                }
-            } else if (type.substr(0, 9) == "-keyword=") {
-                if (!Keywords.empty()) {
-                    printError("Duplicate keyword parameter");
-                    hasError = true;
-                    break;
-                }
-                Keywords = type.substr(9);
-                if (Keywords.empty()) {
-                    printError("Keyword cannot be empty");
-                    hasError = true;
-                    break;
-                }
-                if (Keywords.front() == '"' && Keywords.back() == '"') {
-                    Keywords = Keywords.substr(1, Keywords.length() - 2);
-                }
-                if (Keywords.find("||") != std::string::npos ||
-                    Keywords.front() == '|' || Keywords.back() == '|') {
-                    printError("Invalid keyword format");
-                    hasError = true;
-                    break;
-                }
-            } else if (type.substr(0, 7) == "-price=") {
-                if (Price != -1) {
-                    printError("Duplicate price parameter");
-                    hasError = true;
-                    break;
-                }
-                std::string PriceStr = type.substr(7);
-                if (PriceStr.empty()) {
-                    printError("Price cannot be empty");
-                    hasError = true;
-                    break;
-                }
-                try {
-                    Price = std::stof(PriceStr);
-                    if (Price < 0) {
-                        printError("Price cannot be negative");
-                        hasError = true;
-                        break;
-                    }
-                } catch (const std::exception &) {
-                    printError("Invalid price format");
-                    hasError = true;
-                    break;
-                }
-            } else {
-                printError("Invalid parameters for modify command");
-                hasError = true;
-                break;
+    } else if (op == "modify") {
+      std::string ISBN, BookName, Author, Keywords;
+      float Price = -1;
+      std::string type;
+      bool hasError = false;
+
+      while (iss >> type && !hasError) {
+        if (type.substr(0, 6) == "-ISBN=") {
+          if (!ISBN.empty()) {
+            printError("Duplicate ISBN parameter");
+            hasError = true;
+            break;
+          }
+          ISBN = type.substr(6);
+          if (ISBN.empty()) {
+            printError("ISBN cannot be empty");
+            hasError = true;
+            break;
+          }
+        } else if (type.substr(0, 6) == "-name=") {
+          if (!BookName.empty()) {
+            printError("Duplicate name parameter");
+            hasError = true;
+            break;
+          }
+          BookName = type.substr(6);
+          if (BookName.empty()) {
+            printError("Book name cannot be empty");
+            hasError = true;
+            break;
+          }
+          if (BookName.front() == '"' && BookName.back() == '"') {
+            BookName = BookName.substr(1, BookName.length() - 2);
+          }
+        } else if (type.substr(0, 8) == "-author=") {
+          if (!Author.empty()) {
+            printError("Duplicate author parameter");
+            hasError = true;
+            break;
+          }
+          Author = type.substr(8);
+          if (Author.empty()) {
+            printError("Author cannot be empty");
+            hasError = true;
+            break;
+          }
+          if (Author.front() == '"' && Author.back() == '"') {
+            Author = Author.substr(1, Author.length() - 2);
+          }
+        } else if (type.substr(0, 9) == "-keyword=") {
+          if (!Keywords.empty()) {
+            printError("Duplicate keyword parameter");
+            hasError = true;
+            break;
+          }
+          Keywords = type.substr(9);
+          if (Keywords.empty()) {
+            printError("Keyword cannot be empty");
+            hasError = true;
+            break;
+          }
+          if (Keywords.front() == '"' && Keywords.back() == '"') {
+            Keywords = Keywords.substr(1, Keywords.length() - 2);
+          }
+          if (Keywords.find("||") != std::string::npos ||
+              Keywords.front() == '|' || Keywords.back() == '|') {
+            printError("Invalid keyword format");
+            hasError = true;
+            break;
+          }
+        } else if (type.substr(0, 7) == "-price=") {
+          if (Price != -1) {
+            printError("Duplicate price parameter");
+            hasError = true;
+            break;
+          }
+          std::string PriceStr = type.substr(7);
+          if (PriceStr.empty()) {
+            printError("Price cannot be empty");
+            hasError = true;
+            break;
+          }
+          try {
+            Price = std::stof(PriceStr);
+            if (Price < 0) {
+              printError("Price cannot be negative");
+              hasError = true;
+              break;
             }
+          } catch (const std::exception &) {
+            printError("Invalid price format");
+            hasError = true;
+            break;
+          }
+        } else {
+          printError("Invalid parameters for modify command");
+          hasError = true;
+          break;
         }
-    
-        if (!hasError) {
-            bookstore.Modify(ISBN, BookName, Author, Keywords, Price);
-        }
+      }
+
+      if (!hasError) {
+        bookstore.Modify(ISBN, BookName, Author, Keywords, Price);
+      }
     } else if (op == "show") {
       std::string type;
       if (!(iss >> type)) {

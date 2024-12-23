@@ -8,8 +8,8 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
-#include <set>
 #include <map>
+#include <set>
 #include <stdexcept>
 #include <string>
 
@@ -221,88 +221,99 @@ public:
     }
     if (!bookStorage.select(ISBN)) {
       bookStorage.addBook(ISBN);
-      userStorage.setCurrentUserSelection(ISBN);
+      int id = bookStorage.findIDByISBN(ISBN);
+      userStorage.setCurrentUserSelection(id);
     } else {
-      userStorage.setCurrentUserSelection(ISBN);
+      int id = bookStorage.findIDByISBN(ISBN);
+      userStorage.setCurrentUserSelection(id);
     }
   }
 
-    void Modify(const std::string &ISBN = "", const std::string &BookName = "",
+  void Modify(const std::string &ISBN = "", const std::string &BookName = "",
               const std::string &Author = "", const std::string &Keyword = "",
               float Price = -1) {
-      if (!canExecute(MODIFY)) {
-          printError("Insufficient privileges to modify books");
+    if (!canExecute(MODIFY)) {
+      printError("Insufficient privileges to modify books");
+      return;
+    }
+
+    int id = userStorage.getCurrentUserSelection();
+    if (id == -1) {
+      printError("No book selected for modification");
+      return;
+    }
+    std::string currentISBN = bookStorage.getISBNByID(id);
+    if (currentISBN == "") {
+      printError("No book selected for modification");
+      return;
+    }
+
+    // Validate all parameters first
+    if (ISBN != "") {
+      if (!validateISBN(ISBN)) {
+        printError("Invalid ISBN format");
+        return;
+      }
+      // Check if the new ISBN is already taken by another book
+      if (bookStorage.isISBNExists(ISBN) && ISBN != currentISBN) {
+        printError("ISBN already exists");
+        return;
+      }
+    }
+
+    if (ISBN == currentISBN) {
+      printError("New ISBN cannot be the same as the current ISBN");
+      return;
+    }
+
+    if (BookName != "" && !validateKeyword(BookName)) {
+      printError("Invalid book name format");
+      return;
+    }
+
+    if (Author != "" && !validateKeyword(Author)) {
+      printError("Invalid author name format");
+      return;
+    }
+
+    if (Keyword != "") {
+      if (!validateKeyword(Keyword)) {
+        printError("Invalid keyword format");
+        return;
+      }
+      // Check for duplicate keywords
+      std::set<std::string> uniqueKeywords;
+      std::istringstream ss(Keyword);
+      std::string kw;
+      while (std::getline(ss, kw, '|')) {
+        if (!uniqueKeywords.insert(kw).second) {
+          printError("Duplicate keywords found");
           return;
+        }
       }
-      
-      std::string currentISBN = userStorage.getCurrentUserSelection();
-      if (currentISBN == "") {
-          printError("No book selected for modification");
-          return;
-      }
-  
-      // Validate all parameters first
-      if (ISBN != "") {
-          if (!validateISBN(ISBN)) {
-              printError("Invalid ISBN format");
-              return;
-          }
-          // Check if the new ISBN is already taken by another book
-          if (bookStorage.isISBNExists(ISBN) && ISBN != currentISBN) {
-              printError("ISBN already exists");
-              return;
-          }
-      }
-      
-      if (BookName != "" && !validateKeyword(BookName)) {
-          printError("Invalid book name format");
-          return;
-      }
-      
-      if (Author != "" && !validateKeyword(Author)) {
-          printError("Invalid author name format");
-          return;
-      }
-      
-      if (Keyword != "") {
-          if (!validateKeyword(Keyword)) {
-              printError("Invalid keyword format");
-              return;
-          }
-          // Check for duplicate keywords
-          std::set<std::string> uniqueKeywords;
-          std::istringstream ss(Keyword);
-          std::string kw;
-          while (std::getline(ss, kw, '|')) {
-              if (!uniqueKeywords.insert(kw).second) {
-                  printError("Duplicate keywords found");
-                  return;
-              }
-          }
-      }
-      
-      if (Price != -1 && !validatePrice(Price)) {
-          printError("Invalid price value");
-          return;
-      }
-  
-      // If all validations pass, apply the changes
-      if (ISBN != "") {
-          bookStorage.modify(currentISBN, ISBN);
-          userStorage.setCurrentUserSelection(ISBN);
-      }
-      if (BookName != "") {
-          bookStorage.modify(currentISBN, "", BookName);
-      }
-      if (Author != "") {
-          bookStorage.modify(currentISBN, "", "", Author);
-      }
-      if (Keyword != "") {
-          bookStorage.modify(currentISBN, "", "", "", Keyword);
-      }
-      if (Price != -1) {
-          bookStorage.modify(currentISBN, "", "", "", "", Price);
-      }
+    }
+
+    if (Price != -1 && !validatePrice(Price)) {
+      printError("Invalid price value");
+      return;
+    }
+
+    // If all validations pass, apply the changes
+    if (ISBN != "") {
+      bookStorage.modify(currentISBN, ISBN);
+    }
+    if (BookName != "") {
+      bookStorage.modify(currentISBN, "", BookName);
+    }
+    if (Author != "") {
+      bookStorage.modify(currentISBN, "", "", Author);
+    }
+    if (Keyword != "") {
+      bookStorage.modify(currentISBN, "", "", "", Keyword);
+    }
+    if (Price != -1) {
+      bookStorage.modify(currentISBN, "", "", "", "", Price);
+    }
   }
 
   void Import(float quantity, float costPrice) {
@@ -314,7 +325,12 @@ public:
       printError("Invalid quantity or cost price values");
       return;
     }
-    std::string currentISBN = userStorage.getCurrentUserSelection();
+    int id = userStorage.getCurrentUserSelection();
+    if (id == -1) {
+      printError("No book selected for import");
+      return;
+    }
+    std::string currentISBN = bookStorage.getISBNByID(id);
     if (currentISBN == "") {
       printError("No book selected for import");
       return;

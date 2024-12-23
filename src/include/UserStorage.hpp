@@ -30,7 +30,7 @@ private:
   FileOperation<UserInfo[BLOCK_SIZE]> userFile;
   UserInfo currentUser;
   std::vector<UserInfo> LoggedInUsers;
-  std::stack<std::string> UserSelections;
+  std::stack<int> UserSelections;
 
 public:
   User() {
@@ -275,6 +275,7 @@ public:
       if (currentUser.Privilege >= user.Privilege) {
         currentUser = user;
         LoggedInUsers.push_back(user);
+        UserSelections.push(-1);
         return true;
       }
       return false;
@@ -282,7 +283,7 @@ public:
     if (strcmp(user.PassWord, PassWord.c_str()) == 0) {
       currentUser = user;
       LoggedInUsers.push_back(user);
-      UserSelections.push("");
+      UserSelections.push(-1);
       return true;
     }
     return false;
@@ -384,17 +385,23 @@ public:
   }
 
   // the following functions are for Book operation
-  std::string getCurrentUserSelection() {
+  int getCurrentUserSelection() {
     if (UserSelections.empty()) {
-      return "";
+      return -1;
     }
+    // debug output
+    //std::cout << "Get selection: " << UserSelections.top() << "for user: "
+    //          << currentUser.UserName << std::endl;
     return UserSelections.top();
   }
 
-  void setCurrentUserSelection(const std::string &selection) {
+  void setCurrentUserSelection(int selection) {
     if (UserSelections.empty()) {
       return;
     }
+    // debug output
+    //std::cout << "Set selection: " << selection << "for user: "
+    //          << currentUser.UserName << std::endl;
     UserSelections.pop();
     UserSelections.push(selection);
   }
