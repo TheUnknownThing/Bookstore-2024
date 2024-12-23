@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <algorithm>
 #include <vector>
 
 class Book {
@@ -160,6 +161,11 @@ public:
       authorIndex.PrintAll();
       keywordIndex.PrintAll();*/
     }
+    // sort the record by ISBN
+    std::sort(records.begin(), records.end(),
+              [](const BookRecord &a, const BookRecord &b) {
+                return strcmp(a.ISBN, b.ISBN) < 0;
+              });
     for (const auto &record : records) {
       std::cout << record.ISBN << "\t" << record.BookName << "\t"
                 << record.Author << "\t" << record.Keyword << "\t"
