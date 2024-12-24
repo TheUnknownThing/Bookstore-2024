@@ -80,7 +80,7 @@ private:
     return true;
   }
 
-  bool validatePrice(float price) {
+  bool validatePrice(double price) {
     if (price < 0) {
       return false;
     }
@@ -231,7 +231,7 @@ public:
 
   void Modify(const std::string &ISBN = "", const std::string &BookName = "",
               const std::string &Author = "", const std::string &Keyword = "",
-              float Price = -1) {
+              double Price = -1) {
     if (!canExecute(MODIFY)) {
       printError("Insufficient privileges to modify books");
       return;
@@ -316,7 +316,7 @@ public:
     }
   }
 
-  void Import(float quantity, float costPrice) {
+  void Import(double quantity, double costPrice) {
     if (!canExecute(IMPORT)) {
       printError("Insufficient privileges to import books");
       return;
@@ -350,7 +350,7 @@ public:
     }
     if (count == -1) {
       // show all
-      float totalIncome = 0, totalOutcome = 0;
+      double totalIncome = 0, totalOutcome = 0;
       totalIncome = financeStorage.GetTotalIncome();
       totalOutcome = financeStorage.GetTotalOutcome();
       std::cout << std::setprecision(2) << std::fixed << "+ " << totalIncome

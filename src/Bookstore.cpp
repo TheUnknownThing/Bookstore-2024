@@ -107,7 +107,7 @@ int main() {
       bookstore.Select(ISBN);
     } else if (op == "modify") {
       std::string ISBN, BookName, Author, Keywords;
-      float Price = -1;
+      double Price = -1;
       std::string type;
       bool hasError = false;
 
@@ -313,7 +313,7 @@ int main() {
       }
       bookstore.Buy(ISBN, quantity);
     } else if (op == "import") {
-      float quantity, costPrice;
+      double quantity, costPrice;
       if (!(iss >> quantity)) {
         printError("Missing quantity parameter");
         continue;

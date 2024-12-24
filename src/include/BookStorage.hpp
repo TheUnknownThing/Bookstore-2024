@@ -3,12 +3,13 @@
 
 #include "BookIndexManager.hpp"
 #include "FileOperation.hpp"
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <algorithm>
 #include <vector>
 
 class Book {
@@ -20,7 +21,7 @@ private:
     char Author[61];
     char Keyword[61];
     int quantity;
-    float price;
+    long long price;
   };
 
   FileOperation<BookRecord> bookFile;
@@ -28,7 +29,6 @@ private:
   BookIndexManager ISBNIndex, nameIndex, authorIndex, keywordIndex;
 
   int nextId;
-
 
 public:
   Book()
@@ -187,8 +187,8 @@ public:
               });
     for (const auto &record : records) {
       std::cout << record.ISBN << "\t" << record.BookName << "\t"
-                << record.Author << "\t" << record.Keyword << "\t"
-                << std::fixed << std::setprecision(2) << record.price << "\t"
+                << record.Author << "\t" << record.Keyword << "\t" << std::fixed
+                << std::setprecision(2) << (record.price / 100.0) << "\t"
                 << record.quantity << std::endl;
     }
     if (records.empty()) {
@@ -196,7 +196,7 @@ public:
     }
   }
 
-  std::pair<bool, float> buy(const std::string &ISBN, int quantity) {
+  std::pair<bool, double> buy(const std::string &ISBN, int quantity) {
     std::vector<int> ids = ISBNIndex.Find(ISBN);
     if (ids.empty()) {
       return {false, 0};
@@ -208,9 +208,10 @@ public:
       }
       record.quantity -= quantity;
       bookFile.update(record, ids[0] * sizeof(BookRecord));
-      std::cout << std::setprecision(2) << std::fixed << record.price * quantity
+      long long priceBuy = record.price * quantity;
+      std::cout << std::fixed << std::setprecision(2) << (priceBuy / 100.0)
                 << std::endl;
-      return {true, record.price * quantity};
+      return {true, priceBuy / 100.0};
     }
   }
 
@@ -221,7 +222,7 @@ public:
 
   bool modify(const std::string &currentISBN = "", const std::string &ISBN = "",
               const std::string &name = "", const std::string &author = "",
-              const std::string &keyword = "", float price = -1) {
+              const std::string &keyword = "", double price = -1) {
     std::vector<int> ids = ISBNIndex.Find(currentISBN);
     if (ids.empty()) {
       // std::cout << "Invalid" << std::endl;
@@ -282,14 +283,14 @@ public:
 
         strcpy(record.Keyword, keyword.c_str());
       } else if (price != -1) {
-        record.price = price;
+        record.price = static_cast<long long>(std::round(price * 100));
       }
       bookFile.update(record, ids[0] * sizeof(BookRecord));
     }
     return true;
   }
 
-  bool import(const std::string &currentISBN, float quantity) {
+  bool import(const std::string &currentISBN, double quantity) {
     std::vector<int> ids = ISBNIndex.Find(currentISBN);
     if (ids.empty()) {
       // std::cout << "Invalid" << std::endl;

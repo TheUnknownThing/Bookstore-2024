@@ -5,19 +5,20 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <cmath>
 #include <vector>
 #define BLOCK_SIZE 1000
 
 class Finance {
 private:
-  float totalIncome = 0;
-  float totalOutcome = 0;
+  long long totalIncome = 0;
+  long long totalOutcome = 0;
   int lastId = 0;
 
   struct FinanceRecord {
     int id;
-    float income;
-    float outcome;
+    long long income;
+    long long outcome;
   };
 
   struct Node {
@@ -58,30 +59,27 @@ public:
         totalIncome += cur.records[i].income;
         totalOutcome += cur.records[i].outcome;
       }
-      if (cur.nextPos == -1) {
+      if (cur.nextPos == -1)
         break;
-      }
       nodePos = cur.nextPos;
     }
   }
 
-  float GetTotalIncome() { return totalIncome; }
+  double GetTotalIncome() { return totalIncome / 100.0; }
 
-  float GetTotalOutcome() { return totalOutcome; }
+  double GetTotalOutcome() { return totalOutcome / 100.0; }
 
-  void AddRecord(float income, float outcome) {
-
-    // debug
-    // std::cout << "AddRecord: " << income << " " << outcome << std::endl;
+  void AddRecord(double income, double outcome) {
+    long long intIncome = round(income * 100);
+    long long intOutcome = round(outcome * 100);
 
     Node cur;
     int nodePos = 0;
 
     while (true) {
       financeFile.read(cur, nodePos);
-      if (cur.curSize < BLOCK_SIZE) {
+      if (cur.curSize < BLOCK_SIZE)
         break;
-      }
       if (cur.nextPos == -1) {
         Node newNode;
         newNode.curSize = 0;
@@ -96,8 +94,8 @@ public:
       nodePos = cur.nextPos;
     }
 
-    totalIncome += income;
-    totalOutcome += outcome;
+    totalIncome += intIncome;
+    totalOutcome += intOutcome;
 
     lastId++;
     cur.records[cur.curSize].id = lastId;
@@ -108,16 +106,15 @@ public:
     }
     cur.curSize++;
 
-
     financeFile.update(cur, nodePos);
   }
 
-  void AddOutcome(float outcome) { AddRecord(0, outcome); }
+  void AddOutcome(double outcome) { AddRecord(0, outcome); }
 
-  void AddIncome(float income) { AddRecord(income, 0); }
+  void AddIncome(double income) { AddRecord(income, 0); }
 
-  std::pair<float, float> GetLastNSum(int n) {
-    float sumIncome = totalIncome, sumOutcome = totalOutcome;
+  std::pair<double, double> GetLastNSum(int n) {
+    long long sumIncome = totalIncome, sumOutcome = totalOutcome;
     int targetId = lastId - n;
 
     if (targetId < 0) {
@@ -142,7 +139,7 @@ public:
       }
       nodePos = cur.nextPos;
     }
-    return {sumIncome, sumOutcome};
+    return {sumIncome / 100.0, sumOutcome / 100.0};
   }
 };
 
