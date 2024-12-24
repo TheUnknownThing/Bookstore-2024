@@ -73,8 +73,11 @@ private:
     return true;
   }
 
-  bool validateQuantity(int quantity) {
+  bool validateQuantity(double quantity) {
     if (quantity <= 0) {
+      return false;
+    }
+    if (quantity - static_cast<int>(quantity) > 0) {
       return false;
     }
     return true;

@@ -69,6 +69,13 @@ public:
     return file.tellg();
   }
 
+  void getLast(T &t) {
+    file.seekg(-sizeofT, std::ios::end);
+    file.read(reinterpret_cast<char *>(&t), sizeofT);
+  }
+
+  int getLastPos() { return (getSize() - sizeofT); }
+
   //删除位置索引index对应的对象(不涉及空间回收时，可忽略此函数)，保证调用的index都是由write函数产生
   void Delete(int index) {
     /* your code here */
