@@ -82,7 +82,11 @@ int main() {
       break;
     std::istringstream iss(line);
     iss >> op;
-    if (op == "exit" || op == "quit") {
+
+    // if op only contains whitespace, continue
+    if (op.empty()) {
+      continue;
+    } else if (op == "exit" || op == "quit") {
       if (!(iss >> std::ws).eof()) {
         printError("Extra parameters for exit/quit command");
         continue;
