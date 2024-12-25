@@ -7,6 +7,7 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <set>
 
 #define BLOCK_SIZE 1000
 
@@ -114,7 +115,11 @@ public:
   std::pair<Node, int> FindNode(const std::string &UserID) {
     Node curNode, nextNode;
     int nodePos = 0;
+    std::set<int> visitedPositions;
+    
     nodeFile.read(curNode, nodePos);
+    visitedPositions.insert(nodePos);
+    
     if (!CompNode(curNode, UserID)) {
       return {curNode, nodePos};
     }
@@ -122,6 +127,11 @@ public:
       if (curNode.nextPos == -1) {
         return {curNode, nodePos};
       } else {
+        // Check for cycles
+        if (!visitedPositions.insert(curNode.nextPos).second) {
+          return {curNode, nodePos};  // Found a cycle, return current node
+        }
+        
         nodeFile.read(nextNode, curNode.nextPos);
         if (!CompNode(nextNode, UserID) && CompNode(curNode, UserID)) {
           return {curNode, nodePos};
@@ -307,19 +317,20 @@ public:
   }
 
   void Logout() {
-    if (LoggedInUsers.empty()) {
+    if (LoggedInUsers.empty() || UserSelections.empty()) {
       return;
+    }
+    
+    LoggedInUsers.pop_back();
+    UserSelections.pop();
+    
+    if (LoggedInUsers.empty()) {
+      currentUser.Privilege = 0;
+      strcpy(currentUser.UserID, "");
+      strcpy(currentUser.PassWord, "");
+      strcpy(currentUser.UserName, "");
     } else {
-      LoggedInUsers.pop_back();
-      UserSelections.pop();
-      if (LoggedInUsers.empty()) {
-        currentUser.Privilege = 0;
-        strcpy(currentUser.UserID, "");
-        strcpy(currentUser.PassWord, "");
-        strcpy(currentUser.UserName, "");
-      } else {
-        currentUser = LoggedInUsers.back();
-      }
+      currentUser = LoggedInUsers.back();
     }
   }
 
