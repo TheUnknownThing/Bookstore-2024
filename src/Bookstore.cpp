@@ -1,68 +1,82 @@
 #include "BookstoreOperation.hpp"
+#include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <cctype>
-#include <algorithm>
 
 bool isValidUserIDOrPassword(const std::string &str) {
-    if (str.length() > 30) return false;
-    return std::all_of(str.begin(), str.end(), [](char c) {
-        return std::isalnum(c) || c == '_';
-    });
+  if (str.length() > 30)
+    return false;
+  return std::all_of(str.begin(), str.end(),
+                     [](char c) { return std::isalnum(c) || c == '_'; });
 }
 
 bool isValidUsername(const std::string &str) {
-    if (str.length() > 30) return false;
-    return std::all_of(str.begin(), str.end(), [](char c) {
-        return c >= 32 && c <= 126; // Visible ASCII characters
-    });
+  if (str.length() > 30)
+    return false;
+  return std::all_of(str.begin(), str.end(), [](char c) {
+    return c >= 32 && c <= 126; // Visible ASCII characters
+  });
 }
 
 bool isValidISBN(const std::string &str) {
-    if (str.length() > 20) return false;
-    return std::all_of(str.begin(), str.end(), [](char c) {
-        return c >= 32 && c <= 126; // Visible ASCII characters
-    });
+  if (str.length() > 20)
+    return false;
+  return std::all_of(str.begin(), str.end(), [](char c) {
+    return c >= 32 && c <= 126; // Visible ASCII characters
+  });
 }
 
 bool isValidBookNameOrAuthor(const std::string &str) {
-    if (str.length() > 60) return false;
-    return std::all_of(str.begin(), str.end(), [](char c) {
-        return (c >= 32 && c <= 126 && c != '"'); // Visible ASCII characters except double quote
-    });
+  if (str.length() > 60)
+    return false;
+  return std::all_of(str.begin(), str.end(), [](char c) {
+    return (c >= 32 && c <= 126 &&
+            c != '"'); // Visible ASCII characters except double quote
+  });
 }
 
 bool isValidKeywords(const std::string &str) {
-    if (str.length() > 60) return false;
-    if (str.empty() || str.front() == '|' || str.back() == '|') return false;
-    
-    std::string prev;
-    std::istringstream ss(str);
-    std::string token;
-    std::set<std::string> keywords;
-    
-    while (std::getline(ss, token, '|')) {
-        if (token.empty()) return false;
-        if (token.find('"') != std::string::npos) return false;
-        if (!keywords.insert(token).second) return false; // Duplicate keyword
-    }
-    return true;
+  if (str.length() > 60)
+    return false;
+  if (str.empty() || str.front() == '|' || str.back() == '|')
+    return false;
+
+  std::string prev;
+  std::istringstream ss(str);
+  std::string token;
+  std::set<std::string> keywords;
+
+  while (std::getline(ss, token, '|')) {
+    if (token.empty())
+      return false;
+    if (token.find('"') != std::string::npos)
+      return false;
+    if (!keywords.insert(token).second)
+      return false; // Duplicate keyword
+  }
+  return true;
 }
 
 bool isValidPrice(const std::string &str) {
-    if (str.empty() || str.length() > 13) return false;
-    
-    size_t dotPos = str.find('.');
-    if (dotPos == std::string::npos) {
-        return std::all_of(str.begin(), str.end(), ::isdigit);
-    }
-    
-    if (str.length() - dotPos - 1 > 2) return false;
-    
-    return std::all_of(str.begin(), str.begin() + dotPos, ::isdigit) &&
-           std::all_of(str.begin() + dotPos + 1, str.end(), ::isdigit);
+  if (str.empty() || str.length() > 13)
+    return false;
+
+  if (str.front() == '-')
+    return false;
+
+  size_t dotPos = str.find('.');
+  if (dotPos == std::string::npos) {
+    return std::all_of(str.begin(), str.end(), ::isdigit);
+  }
+
+  if (str.length() - dotPos - 1 > 2)
+    return false;
+
+  return std::all_of(str.begin(), str.begin() + dotPos, ::isdigit) &&
+         std::all_of(str.begin() + dotPos + 1, str.end(), ::isdigit);
 }
 
 void printError(const std::string &detailedMessage) {
@@ -110,7 +124,8 @@ int main() {
       } else if (inputs.size() == 2) {
         userID = inputs[0];
         passWord = inputs[1];
-        if (!isValidUserIDOrPassword(userID) || !isValidUserIDOrPassword(passWord)) {
+        if (!isValidUserIDOrPassword(userID) ||
+            !isValidUserIDOrPassword(passWord)) {
           printError("Invalid UserID or Password format");
           continue;
         }
@@ -127,7 +142,8 @@ int main() {
     } else if (op == "useradd") {
       std::string userID, passWord, userName;
       int privilege;
-      if (!(iss >> userID >> passWord >> privilege >> userName) || (iss >> op)) {
+      if (!(iss >> userID >> passWord >> privilege >> userName) ||
+          (iss >> op)) {
         printError("Invalid parameters for useradd command");
         continue;
       }
@@ -178,7 +194,8 @@ int main() {
       if (inputs.size() == 2) {
         userID = inputs[0];
         newPassWord = inputs[1];
-        if (!isValidUserIDOrPassword(userID) || !isValidUserIDOrPassword(newPassWord)) {
+        if (!isValidUserIDOrPassword(userID) ||
+            !isValidUserIDOrPassword(newPassWord)) {
           printError("Invalid UserID or Password format");
           continue;
         }
@@ -187,7 +204,8 @@ int main() {
         userID = inputs[0];
         passWord = inputs[1];
         newPassWord = inputs[2];
-        if (!isValidUserIDOrPassword(userID) || !isValidUserIDOrPassword(passWord) || 
+        if (!isValidUserIDOrPassword(userID) ||
+            !isValidUserIDOrPassword(passWord) ||
             !isValidUserIDOrPassword(newPassWord)) {
           printError("Invalid UserID or Password format");
           continue;
@@ -244,9 +262,13 @@ int main() {
             break;
           }
           BookName = type.substr(6);
-          if (BookName.front() == '"' && BookName.back() == '"') {
-            BookName = BookName.substr(1, BookName.length() - 2);
+          if (BookName.length() < 2 || BookName.front() != '"' ||
+              BookName.back() != '"') {
+            printError("Book name must be enclosed in quotes");
+            hasError = true;
+            break;
           }
+          BookName = BookName.substr(1, BookName.length() - 2);
           if (!isValidBookNameOrAuthor(BookName)) {
             printError("Invalid book name format");
             hasError = true;
@@ -259,9 +281,13 @@ int main() {
             break;
           }
           Author = type.substr(8);
-          if (Author.front() == '"' && Author.back() == '"') {
-            Author = Author.substr(1, Author.length() - 2);
+          if (Author.length() < 2 || Author.front() != '"' ||
+              Author.back() != '"') {
+            printError("Author must be enclosed in quotes");
+            hasError = true;
+            break;
           }
+          Author = Author.substr(1, Author.length() - 2);
           if (!isValidBookNameOrAuthor(Author)) {
             printError("Invalid author format");
             hasError = true;
@@ -274,9 +300,13 @@ int main() {
             break;
           }
           Keywords = type.substr(9);
-          if (Keywords.front() == '"' && Keywords.back() == '"') {
-            Keywords = Keywords.substr(1, Keywords.length() - 2);
+          if (Keywords.length() < 2 || Keywords.front() != '"' ||
+              Keywords.back() != '"') {
+            printError("Keywords must be enclosed in quotes");
+            hasError = true;
+            break;
           }
+          Keywords = Keywords.substr(1, Keywords.length() - 2);
           if (!isValidKeywords(Keywords)) {
             printError("Invalid keyword format");
             hasError = true;
@@ -335,9 +365,12 @@ int main() {
         bookstore.Show(ISBN);
       } else if (type.substr(0, 6) == "-name=") {
         std::string BookName = type.substr(6);
-        if (BookName.front() == '"' && BookName.back() == '"') {
-          BookName = BookName.substr(1, BookName.length() - 2);
+        if (BookName.length() < 2 || BookName.front() != '"' ||
+            BookName.back() != '"') {
+          printError("Book name must be enclosed in quotes");
+          continue;
         }
+        BookName = BookName.substr(1, BookName.length() - 2);
         if (!isValidBookNameOrAuthor(BookName)) {
           printError("Invalid book name format");
           continue;
@@ -349,9 +382,12 @@ int main() {
         bookstore.Show("", BookName);
       } else if (type.substr(0, 8) == "-author=") {
         std::string Author = type.substr(8);
-        if (Author.front() == '"' && Author.back() == '"') {
-          Author = Author.substr(1, Author.length() - 2);
+        if (Author.length() < 2 || Author.front() != '"' ||
+            Author.back() != '"') {
+          printError("Author must be enclosed in quotes");
+          continue;
         }
+        Author = Author.substr(1, Author.length() - 2);
         if (!isValidBookNameOrAuthor(Author)) {
           printError("Invalid author format");
           continue;
