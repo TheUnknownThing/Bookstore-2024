@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <set>
 #define BLOCK_SIZE 1000
 
 class BookIndexManager {
@@ -89,14 +90,23 @@ public:
   std::pair<Node, int> FindNode(const std::string &index, int value) {
     Node cur, nxt;
     int nodePos = 0;
+    std::set<int> visitedPositions;
+    
     bookFile.read(cur, 0);
+    visitedPositions.insert(0);
+    
     if (!CompNode(cur, index, value)) {
       return std::make_pair(cur, nodePos);
     }
+    
     while (true) {
       if (cur.nextPos == -1) {
         return std::make_pair(cur, nodePos);
       } else {
+        if (!visitedPositions.insert(cur.nextPos).second) {
+          return std::make_pair(cur, nodePos);
+        }
+        
         bookFile.read(nxt, cur.nextPos);
         if (!CompNode(nxt, index, value) && CompNode(cur, index, value)) {
           return std::make_pair(cur, nodePos);
@@ -207,10 +217,12 @@ public:
     return;
   }
 
-  // delete all records with index
   void Delete(const std::string &index) {
-    Node cur, nxt;
+    Node cur;
     int nodePos = 0;
+    std::set<int> visitedPositions;
+    visitedPositions.insert(0);
+    
     bookFile.read(cur, 0);
     while (true) {
       int i = 0;
@@ -233,6 +245,9 @@ public:
         bookFile.update(cur, nodePos);
       }
       if (cur.nextPos == -1) {
+        break;
+      }
+      if (!visitedPositions.insert(cur.nextPos).second) {
         break;
       }
       nodePos = cur.nextPos;
