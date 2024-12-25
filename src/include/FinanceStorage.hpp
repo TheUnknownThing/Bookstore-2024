@@ -69,25 +69,17 @@ public:
   void AddIncome(double income) { AddRecord(income, 0); }
 
   std::pair<double, double> GetLastNSum(int n) {
-    long long sumIncome = 0, sumOutcome = 0;
-    int targetId = lastId - n;
-
-    if (targetId < 0) {
+    if (n <= 0 || n > lastId) {
       return {-1, -1};
     }
 
     FinanceRecord cur;
+    int targetId = lastId - n;
     int pos = sizeof(FinanceRecord) * targetId;
 
     financeFile.read(cur, pos);
-
-    if (cur.id == targetId) {
-        sumIncome = totalIncome - cur.income;
-        sumOutcome = totalOutcome - cur.outcome;
-    } else {
-        sumIncome = totalIncome - cur.income;
-        sumOutcome = totalOutcome - cur.outcome;
-    }
+    long long sumIncome = totalIncome - cur.income;
+    long long sumOutcome = totalOutcome - cur.outcome;
 
     return {sumIncome / 100.0, sumOutcome / 100.0};
   }

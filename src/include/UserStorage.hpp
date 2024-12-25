@@ -386,16 +386,23 @@ public:
     return true;
   }
 
+  bool IsUserLoggedIn(const std::string &userID) {
+    for (const auto &user : LoggedInUsers) {
+      if (strcmp(user.UserID, userID.c_str()) == 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool DeleteUser(const std::string &UserID) {
     UserInfo user = FindUser(UserID);
     if (strcmp(user.UserID, UserID.c_str()) != 0) {
       return false;
     }
     // check if logged in
-    for (auto &u : LoggedInUsers) {
-      if (strcmp(u.UserID, UserID.c_str()) == 0) {
-        return false;
-      }
+    if (IsUserLoggedIn(UserID)) {
+      return false;
     }
     Delete(UserID);
     return true;
