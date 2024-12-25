@@ -62,34 +62,6 @@ private:
   Book bookStorage;
   Finance financeStorage;
 
-  bool validateISBN(const std::string &ISBN) {
-    return (ISBN.size() <= 20 && ISBN.size() > 0);
-  }
-
-  bool validateKeyword(const std::string &keyword) {
-    if (keyword.size() > 60) {
-      return false;
-    }
-    return true;
-  }
-
-  bool validateQuantity(double quantity) {
-    if (quantity <= 0) {
-      return false;
-    }
-    if (quantity - static_cast<int>(quantity) > 0) {
-      return false;
-    }
-    return true;
-  }
-
-  bool validatePrice(double price) {
-    if (price < 0) {
-      return false;
-    }
-    return true;
-  }
-
   void printError(const std::string &detailedMessage) {
 #ifdef DEBUG_MODE
     std::cout << "Error: " << detailedMessage << std::endl;
@@ -217,10 +189,6 @@ public:
       printError("Insufficient privileges to make purchases");
       return false;
     }
-    if (!validateISBN(ISBN) || !validateQuantity(quantity)) {
-      printError("Invalid ISBN or quantity value");
-      return false;
-    }
     auto [flag, price] = bookStorage.buy(ISBN, quantity);
     if (!flag) {
       printError("Book not found or insufficient stock");
@@ -266,10 +234,6 @@ public:
     }
 
     if (ISBN != "") {
-      if (!validateISBN(ISBN)) {
-        printError("Invalid ISBN format");
-        return false;
-      }
       if (bookStorage.isISBNExists(ISBN) && ISBN != currentISBN) {
         printError("ISBN already exists");
         return false;
@@ -278,38 +242,6 @@ public:
 
     if (ISBN == currentISBN) {
       printError("New ISBN cannot be the same as the current ISBN");
-      return false;
-    }
-
-    if (BookName != "" && !validateKeyword(BookName)) {
-      printError("Invalid book name format");
-      return false;
-    }
-
-    if (Author != "" && !validateKeyword(Author)) {
-      printError("Invalid author name format");
-      return false;
-    }
-
-    if (Keyword != "") {
-      if (!validateKeyword(Keyword)) {
-        printError("Invalid keyword format");
-        return false;
-      }
-      // Check for duplicate keywords
-      std::set<std::string> uniqueKeywords;
-      std::istringstream ss(Keyword);
-      std::string kw;
-      while (std::getline(ss, kw, '|')) {
-        if (!uniqueKeywords.insert(kw).second) {
-          printError("Duplicate keywords found");
-          return false;
-        }
-      }
-    }
-
-    if (Price != -1 && !validatePrice(Price)) {
-      printError("Invalid price value");
       return false;
     }
 
@@ -334,10 +266,6 @@ public:
   bool Import(double quantity, double costPrice) {
     if (!canExecute(IMPORT)) {
       printError("Insufficient privileges to import books");
-      return false;
-    }
-    if (!validateQuantity(quantity) || !validatePrice(costPrice)) {
-      printError("Invalid quantity or cost price values");
       return false;
     }
     int id = userStorage.getCurrentUserSelection();
