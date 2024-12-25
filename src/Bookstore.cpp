@@ -399,8 +399,15 @@ int main() {
         bookstore.Show("", "", Author);
       } else if (type.substr(0, 9) == "-keyword=") {
         std::string Keyword = type.substr(9);
-        if (Keyword.front() == '"' && Keyword.back() == '"') {
-          Keyword = Keyword.substr(1, Keyword.length() - 2);
+        if (Keyword.length() < 2 || Keyword.front() != '"' ||
+            Keyword.back() != '"') {
+          printError("Keyword must be enclosed in quotes");
+          continue;
+        }
+        Keyword = Keyword.substr(1, Keyword.length() - 2);
+        if (Keyword.find("|") != std::string::npos) {
+          printError("Keywords must be enclosed in quotes");
+          continue;
         }
         if (!isValidKeywords(Keyword)) {
           printError("Invalid keyword format");
