@@ -114,7 +114,7 @@ public:
   void Login(const std::string &userID, const std::string &passWord = "") {
     // userStorage.PrintAll(); // debug
     if (!userStorage.Login(userID, passWord)) {
-      std::cout << "Invalid" << std::endl;
+      printError("Login failed");
       return;
     }
   }
@@ -122,56 +122,56 @@ public:
   void UserAdd(const std::string &userID, const std::string &passWord,
                int privilege, const std::string &userName) {
     if (!canExecute(USERADD)) {
-      std::cout << "Invalid" << std::endl;
+      printError("Insufficient privileges to add users");
       return;
     }
     if (!userStorage.UserAdd(userID, passWord, userName, privilege)) {
-      std::cout << "Invalid" << std::endl;
+      printError("Add user failed");
     }
   }
 
   void Passwd(const std::string &userID, const std::string &newPassWord) {
     if (!canExecute(PASSWDROOT)) {
-      std::cout << "Invalid" << std::endl;
+      printError("Insufficient privileges to change password");
       return;
     }
     if (!userStorage.Passwd(userID, newPassWord)) {
-      std::cout << "Invalid" << std::endl;
+      printError("Change password failed");
     }
   }
 
   void Passwd(const std::string &userID, const std::string &passWord,
               const std::string &newPassWord) {
     if (!canExecute(PASSWD)) {
-      std::cout << "Invalid" << std::endl;
+      printError("Insufficient privileges to change password");
       return;
     }
     if (!userStorage.Passwd(userID, passWord, newPassWord)) {
-      std::cout << "Invalid" << std::endl;
+      printError("Change password failed");
     }
   }
 
   void DeleteUser(const std::string &userID) {
     if (!canExecute(DELETE)) {
-      std::cout << "Invalid" << std::endl;
+      printError("Insufficient privileges to delete users");
       return;
     }
     if (!userStorage.DeleteUser(userID)) {
-      std::cout << "Invalid" << std::endl;
+      printError("Delete user failed");
     }
   }
 
   void Register(const std::string &userID, const std::string &passWord,
                 const std::string &userName) {
     if (!userStorage.Register(userID, passWord, userName)) {
-      std::cout << "Invalid" << std::endl;
+      printError("Register failed");
       return;
     }
   }
 
   void Logout() {
     if (!canExecute(LOGOUT)) {
-      std::cout << "Invalid" << std::endl;
+      printError("Insufficient privileges to logout");
       return;
     }
     userStorage.Logout();
@@ -400,6 +400,15 @@ public:
     if (!canExecute(LOG)) {
       std::cout << "Invalid" << std::endl;
     }
+  }
+
+  /*
+   * @brief: Debug Operation
+   * @functions: Debug
+   */
+  void DebugUser() {
+    userStorage.PrintAll();
+    userStorage.ShowAllLogInUsers();
   }
 };
 

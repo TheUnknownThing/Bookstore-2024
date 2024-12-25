@@ -76,6 +76,14 @@ public:
     strcpy(currentUser.UserName, "");
   }
 
+  // debug
+  void ShowAllLogInUsers() {
+    for (auto &user : LoggedInUsers) {
+      std::cout << user.UserID << " " << user.PassWord << " " << user.UserName
+                << " " << user.Privilege << std::endl;
+    }
+  }
+
   void PrintAll() {
     Node cur;
     int nodePos = 0;
@@ -107,15 +115,21 @@ public:
     Node curNode, nextNode;
     int nodePos = 0;
     nodeFile.read(curNode, nodePos);
+    if (!CompNode(curNode, UserID)) {
+      return {curNode, nodePos};
+    }
     while (true) {
-      if (!CompNode(curNode, UserID)) {
-        return {curNode, nodePos};
-      }
       if (curNode.nextPos == -1) {
         return {curNode, nodePos};
+      } else {
+        nodeFile.read(nextNode, curNode.nextPos);
+        if (!CompNode(nextNode, UserID) && CompNode(curNode, UserID)) {
+          return {curNode, nodePos};
+        } else {
+          nodePos = curNode.nextPos;
+          curNode = nextNode;
+        }
       }
-      nodePos = curNode.nextPos;
-      nodeFile.read(curNode, nodePos);
     }
   }
 
@@ -268,6 +282,7 @@ public:
   bool Login(const std::string &UserID, const std::string &PassWord) {
     UserInfo user = FindUser(UserID);
     if (strcmp(user.UserID, UserID.c_str()) != 0) {
+      // std::cout << "User not found" << std::endl; // debug
       return false;
     }
     if (PassWord == "") {
@@ -278,6 +293,7 @@ public:
         UserSelections.push(-1);
         return true;
       }
+      // std::cout << "Insufficient privileges" << std::endl; // debug
       return false;
     }
     if (strcmp(user.PassWord, PassWord.c_str()) == 0) {
@@ -286,6 +302,7 @@ public:
       UserSelections.push(-1);
       return true;
     }
+    // std::cout << "Password incorrect" << std::endl; // debug
     return false;
   }
 
@@ -390,7 +407,7 @@ public:
       return -1;
     }
     // debug output
-    //std::cout << "Get selection: " << UserSelections.top() << "for user: "
+    // std::cout << "Get selection: " << UserSelections.top() << "for user: "
     //          << currentUser.UserName << std::endl;
     return UserSelections.top();
   }
@@ -400,7 +417,7 @@ public:
       return;
     }
     // debug output
-    //std::cout << "Set selection: " << selection << "for user: "
+    // std::cout << "Set selection: " << selection << "for user: "
     //          << currentUser.UserName << std::endl;
     UserSelections.pop();
     UserSelections.push(selection);

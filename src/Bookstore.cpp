@@ -327,6 +327,8 @@ int main() {
         continue;
       }
       bookstore.Import(quantity, costPrice);
+    } else if (op == "debug") {
+      bookstore.DebugUser();
     } else {
       printError("Unknown command");
     }
