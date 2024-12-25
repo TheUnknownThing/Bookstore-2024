@@ -111,81 +111,92 @@ public:
    * @stat: basic testcase 1-3 passed
    */
 
-  void Login(const std::string &userID, const std::string &passWord = "") {
+  bool Login(const std::string &userID, const std::string &passWord = "") {
     // userStorage.PrintAll(); // debug
     if (!userStorage.Login(userID, passWord)) {
       printError("Login failed");
-      return;
+      return false;
     }
+    return true;
   }
 
-  void UserAdd(const std::string &userID, const std::string &passWord,
+  bool UserAdd(const std::string &userID, const std::string &passWord,
                int privilege, const std::string &userName) {
     if (!canExecute(USERADD)) {
       printError("Insufficient privileges to add users");
-      return;
+      return false;
     }
     if (!userStorage.UserAdd(userID, passWord, userName, privilege)) {
       printError("Add user failed");
+      return false;
     }
+    return true;
   }
 
-  void Passwd(const std::string &userID, const std::string &newPassWord) {
+  bool Passwd(const std::string &userID, const std::string &newPassWord) {
     if (!canExecute(PASSWDROOT)) {
       printError("Insufficient privileges to change password");
-      return;
+      return false;
     }
     if (!userStorage.Passwd(userID, newPassWord)) {
       printError("Change password failed");
+      return false;
     }
+    return true;
   }
 
-  void Passwd(const std::string &userID, const std::string &passWord,
+  bool Passwd(const std::string &userID, const std::string &passWord,
               const std::string &newPassWord) {
     if (!canExecute(PASSWD)) {
       printError("Insufficient privileges to change password");
-      return;
+      return false;
     }
     if (!userStorage.Passwd(userID, passWord, newPassWord)) {
       printError("Change password failed");
+      return false;
     }
+    return true;
   }
 
-  void DeleteUser(const std::string &userID) {
+  bool DeleteUser(const std::string &userID) {
     if (!canExecute(DELETE)) {
       printError("Insufficient privileges to delete users");
-      return;
+      return false;
     }
     if (!userStorage.DeleteUser(userID)) {
       printError("Delete user failed");
+      return false;
     }
+    return true;
   }
 
-  void Register(const std::string &userID, const std::string &passWord,
+  bool Register(const std::string &userID, const std::string &passWord,
                 const std::string &userName) {
     if (!userStorage.Register(userID, passWord, userName)) {
       printError("Register failed");
-      return;
+      return false;
     }
+    return true;
   }
 
-  void Logout() {
+  bool Logout() {
     if (!canExecute(LOGOUT)) {
       printError("Insufficient privileges to logout");
-      return;
+      return false;
     }
     userStorage.Logout();
+    return true;
   }
 
   /*
    * @brief: Book Operation
    * @functions: Show, Buy, Select, Modify, Import
    */
-  void Show(const std::string &ISBN = "", const std::string &BookName = "",
+  bool Show(const std::string &ISBN = "", const std::string &BookName = "",
             const std::string &Author = "", const std::string &Keyword = "") {
     if (!canExecute(SHOW)) {
       printError("Insufficient privileges to show books");
-      return;
+      return false;
     }
     if (ISBN != "") {
       bookStorage.show(ISBN);
@@ -198,16 +209,17 @@ public:
     } else {
       bookStorage.show();
     }
+    return true;
   }
 
-  void Buy(const std::string &ISBN, int quantity) {
+  bool Buy(const std::string &ISBN, int quantity) {
     if (!canExecute(BUY)) {
       printError("Insufficient privileges to make purchases");
-      return;
+      return false;
     }
     if (!validateISBN(ISBN) || !validateQuantity(quantity)) {
       printError("Invalid ISBN or quantity value");
-      return;
+      return false;
     }
     auto [flag, price] = bookStorage.buy(ISBN, quantity);
     if (!flag) {
@@ -215,12 +227,13 @@ public:
     } else {
       financeStorage.AddIncome(price);
     }
+    return true;
   }
 
-  void Select(const std::string &ISBN) {
+  bool Select(const std::string &ISBN) {
     if (!canExecute(SELECT)) {
       printError("Insufficient privileges to select books");
-      return;
+      return false;
     }
     if (!bookStorage.select(ISBN)) {
       bookStorage.addBook(ISBN);
@@ -230,59 +243,58 @@ public:
       int id = bookStorage.findIDByISBN(ISBN);
       userStorage.setCurrentUserSelection(id);
     }
+    return true;
   }
 
-  void Modify(const std::string &ISBN = "", const std::string &BookName = "",
+  bool Modify(const std::string &ISBN = "", const std::string &BookName = "",
               const std::string &Author = "", const std::string &Keyword = "",
               double Price = -1) {
     if (!canExecute(MODIFY)) {
       printError("Insufficient privileges to modify books");
-      return;
+      return false;
     }
 
     int id = userStorage.getCurrentUserSelection();
     if (id == -1) {
       printError("No book selected for modification");
-      return;
+      return false;
     }
     std::string currentISBN = bookStorage.getISBNByID(id);
     if (currentISBN == "") {
       printError("No book selected for modification");
-      return;
+      return false;
     }
 
-    // Validate all parameters first
     if (ISBN != "") {
       if (!validateISBN(ISBN)) {
         printError("Invalid ISBN format");
-        return;
+        return false;
       }
-      // Check if the new ISBN is already taken by another book
       if (bookStorage.isISBNExists(ISBN) && ISBN != currentISBN) {
         printError("ISBN already exists");
-        return;
+        return false;
       }
     }
 
     if (ISBN == currentISBN) {
       printError("New ISBN cannot be the same as the current ISBN");
-      return;
+      return false;
     }
 
     if (BookName != "" && !validateKeyword(BookName)) {
       printError("Invalid book name format");
-      return;
+      return false;
     }
 
     if (Author != "" && !validateKeyword(Author)) {
       printError("Invalid author name format");
-      return;
+      return false;
     }
 
     if (Keyword != "") {
       if (!validateKeyword(Keyword)) {
         printError("Invalid keyword format");
-        return;
+        return false;
       }
       // Check for duplicate keywords
       std::set<std::string> uniqueKeywords;
@@ -291,17 +303,16 @@ public:
       while (std::getline(ss, kw, '|')) {
         if (!uniqueKeywords.insert(kw).second) {
           printError("Duplicate keywords found");
-          return;
+          return false;
         }
       }
     }
 
     if (Price != -1 && !validatePrice(Price)) {
       printError("Invalid price value");
-      return;
+      return false;
     }
 
-    // If all validations pass, apply the changes
     if (ISBN != "") {
       bookStorage.modify(currentISBN, ISBN);
     }
@@ -317,39 +328,41 @@ public:
     if (Price != -1) {
       bookStorage.modify(currentISBN, "", "", "", "", Price);
     }
+    return true;
   }
 
-  void Import(double quantity, double costPrice) {
+  bool Import(double quantity, double costPrice) {
     if (!canExecute(IMPORT)) {
       printError("Insufficient privileges to import books");
-      return;
+      return false;
     }
     if (!validateQuantity(quantity) || !validatePrice(costPrice)) {
       printError("Invalid quantity or cost price values");
-      return;
+      return false;
     }
     int id = userStorage.getCurrentUserSelection();
     if (id == -1) {
       printError("No book selected for import");
-      return;
+      return false;
     }
     std::string currentISBN = bookStorage.getISBNByID(id);
     if (currentISBN == "") {
       printError("No book selected for import");
-      return;
+      return false;
     }
     bookStorage.import(currentISBN, quantity);
     financeStorage.AddOutcome(costPrice);
+    return true;
   }
   /*
    * @brief: Finance Operation
    * @functions: ShowFinance, ReportFinance
    */
 
-  void ShowFinance(int count = -1) {
+  bool ShowFinance(int count = -1) {
     if (!canExecute(SHOWFINANCE)) {
       std::cout << "Invalid" << std::endl;
-      return;
+      return false;
     }
     if (count == -1) {
       // show all
@@ -370,6 +383,7 @@ public:
                   << " - " << outcome << std::endl;
       }
     }
+    return true;
   }
 
   void ReportFinance() {
