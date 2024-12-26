@@ -356,6 +356,9 @@ public:
     if (strcmp(user.UserID, UserID.c_str()) != 0) {
       return false;
     }
+    if (currentUser.Privilege <= user.Privilege) {
+      return false;
+    }
     strcpy(user.PassWord, NewPassWord.c_str());
     Delete(UserID);
     InsertUser(user);
