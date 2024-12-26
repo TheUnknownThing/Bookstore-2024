@@ -72,9 +72,6 @@ bool isValidPrice(const std::string &str) {
     return std::all_of(str.begin(), str.end(), ::isdigit);
   }
 
-  if (str.length() - dotPos - 1 > 2)
-    return false;
-
   return std::all_of(str.begin(), str.begin() + dotPos, ::isdigit) &&
          std::all_of(str.begin() + dotPos + 1, str.end(), ::isdigit);
 }
@@ -92,13 +89,12 @@ int main() {
   BookstoreOperation bookstore;
   while (true) {
     if (std::cin.eof()) break;
-    
+
     std::getline(std::cin, line);
     if (line.empty()) continue;
     std::istringstream iss(line);
     iss >> op;
 
-    // if op only contains whitespace, continue
     if (op.empty()) {
       continue;
     } else if (op == "exit" || op == "quit") {
