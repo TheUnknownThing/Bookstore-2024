@@ -17,7 +17,7 @@ bool isValidUsername(const std::string &str) {
   if (str.length() > 30)
     return false;
   return std::all_of(str.begin(), str.end(), [](char c) {
-    return c >= 32 && c <= 126; // Visible ASCII characters
+    return c >= 32 && c <= 126;
   });
 }
 
@@ -25,7 +25,7 @@ bool isValidISBN(const std::string &str) {
   if (str.length() > 20)
     return false;
   return std::all_of(str.begin(), str.end(), [](char c) {
-    return c >= 32 && c <= 126; // Visible ASCII characters
+    return c >= 32 && c <= 126;
   });
 }
 
@@ -34,7 +34,7 @@ bool isValidBookNameOrAuthor(const std::string &str) {
     return false;
   return std::all_of(str.begin(), str.end(), [](char c) {
     return (c >= 32 && c <= 126 &&
-            c != '"'); // Visible ASCII characters except double quote
+            c != '"');
   });
 }
 
@@ -58,6 +58,12 @@ bool isValidKeywords(const std::string &str) {
       return false; // Duplicate keyword
   }
   return true;
+}
+
+bool isValidQuantity(const std::string &str) {
+  if (str.empty() || str.length() > 13)
+    return false;
+  return std::all_of(str.begin(), str.end(), ::isdigit);
 }
 
 bool isValidPrice(const std::string &str) {
@@ -475,8 +481,12 @@ int main() {
         printError("Invalid cost price format");
         continue;
       }
+      if (!isValidQuantity(quantityStr)) {
+        printError("Invalid quantity format");
+        continue;
+      }
       try {
-        quantity = std::stoi(quantityStr);
+        quantity = std::stof(quantityStr);
         costPrice = std::stof(costPriceStr);
         if (quantity <= 0 || quantity > 2147483647) {
           printError("Invalid quantity");
