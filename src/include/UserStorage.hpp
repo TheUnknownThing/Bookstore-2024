@@ -273,8 +273,7 @@ public:
       return false;
     }
     if (PassWord == "") {
-      // if current user privilege is higher than the user to be logged in
-      if (currentUser.Privilege >= user.Privilege) {
+      if (currentUser.Privilege > user.Privilege) {
         currentUser = user;
         LoggedInUsers.push_back(user);
         UserSelections.push(-1);
