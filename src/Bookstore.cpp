@@ -16,30 +16,26 @@ bool isValidUserIDOrPassword(const std::string &str) {
 bool isValidUsername(const std::string &str) {
   if (str.length() > 30)
     return false;
-  return std::all_of(str.begin(), str.end(), [](char c) {
-    return c >= 32 && c <= 126;
-  });
+  return std::all_of(str.begin(), str.end(),
+                     [](char c) { return c >= 32 && c <= 126; });
 }
 
 bool isValidISBN(const std::string &str) {
-  if (str.length() > 20)
+  if (str.length() > 20 || str.empty())
     return false;
-  return std::all_of(str.begin(), str.end(), [](char c) {
-    return c >= 32 && c <= 126;
-  });
+  return std::all_of(str.begin(), str.end(),
+                     [](char c) { return c >= 32 && c <= 126; });
 }
 
 bool isValidBookNameOrAuthor(const std::string &str) {
-  if (str.length() > 60)
+  if (str.length() > 60 || str.empty())
     return false;
-  return std::all_of(str.begin(), str.end(), [](char c) {
-    return (c >= 32 && c <= 126 &&
-            c != '"');
-  });
+  return std::all_of(str.begin(), str.end(),
+                     [](char c) { return (c >= 32 && c <= 126 && c != '"'); });
 }
 
 bool isValidKeywords(const std::string &str) {
-  if (str.length() > 60)
+  if (str.length() > 60 || str.find("||") != std::string::npos)
     return false;
   if (str.empty() || str.front() == '|' || str.back() == '|')
     return false;
@@ -58,9 +54,8 @@ bool isValidKeywords(const std::string &str) {
       return false;
     if (!keywords.insert(token).second)
       return false;
-    if (!std::all_of(token.begin(), token.end(), [](char c) {
-      return c >= 32 && c <= 126 && c != '\"';
-    }))
+    if (!std::all_of(token.begin(), token.end(),
+                     [](char c) { return c >= 32 && c <= 126 && c != '\"'; }))
       return false;
   }
   return true;
@@ -83,7 +78,7 @@ bool isValidPrice(const std::string &str) {
   if (dotPos == std::string::npos) {
     return std::all_of(str.begin(), str.end(), ::isdigit);
   }
-  
+
   if (str.find('.', dotPos + 1) != std::string::npos)
     return false;
 
@@ -106,10 +101,12 @@ int main() {
   std::string line, op;
   BookstoreOperation bookstore;
   while (true) {
-    if (std::cin.eof()) break;
+    if (std::cin.eof())
+      break;
 
     std::getline(std::cin, line);
-    if (line.empty()) continue;
+    if (line.empty())
+      continue;
     std::istringstream iss(line);
     iss >> op;
 
