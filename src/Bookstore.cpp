@@ -84,15 +84,12 @@ bool isValidPrice(const std::string &str) {
     return std::all_of(str.begin(), str.end(), ::isdigit);
   }
   
-  // Check for multiple decimal points
   if (str.find('.', dotPos + 1) != std::string::npos)
     return false;
 
-  // Check decimal places
   if (str.length() - dotPos - 1 > 2 || str.length() - dotPos - 1 == 0)
     return false;
 
-  // Check if all characters before and after dot are digits
   return std::all_of(str.begin(), str.begin() + dotPos, ::isdigit) &&
          std::all_of(str.begin() + dotPos + 1, str.end(), ::isdigit);
 }
@@ -520,12 +517,6 @@ int main() {
         }
         if (costPrice <= 0) {
           printError("Cost price must be positive");
-          continue;
-        }
-        // Check if cost price has exactly 2 decimal places
-        std::string::size_type dotPos = costPriceStr.find('.');
-        if (dotPos != std::string::npos && costPriceStr.length() - dotPos - 1 != 2) {
-          printError("Cost price must have exactly 2 decimal places");
           continue;
         }
       } catch (const std::exception &) {
