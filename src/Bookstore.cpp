@@ -52,7 +52,7 @@ bool isValidKeywords(const std::string &str) {
   while (std::getline(ss, token, '|')) {
     if (token.empty())
       return false;
-    if (token.find('"') != std::string::npos)
+    if (token.find('\"') != std::string::npos)
       return false;
     if (!keywords.insert(token).second)
       return false; // Duplicate keyword
@@ -328,7 +328,7 @@ int main() {
             break;
           }
           try {
-            Price = std::stof(PriceStr);
+            Price = std::stod(PriceStr);
             if (Price < 0) {
               printError("Price cannot be negative");
               hasError = true;
@@ -444,7 +444,8 @@ int main() {
       }
     } else if (op == "buy") {
       std::string ISBN;
-      int quantity;
+      std::string quantityStr;
+      float quantity;
       if (!(iss >> ISBN)) {
         printError("Missing ISBN parameter");
         continue;
@@ -453,8 +454,18 @@ int main() {
         printError("Invalid ISBN format");
         continue;
       }
-      if (!(iss >> quantity)) {
+      if (!(iss >> quantityStr)) {
         printError("Missing quantity parameter");
+        continue;
+      }
+      if (!isValidQuantity(quantityStr)) {
+        printError("Invalid quantity format");
+        continue;
+      }
+      try {
+        quantity = std::stod(quantityStr);
+      } catch (const std::exception &) {
+        printError("Invalid number format");
         continue;
       }
       if (quantity <= 0 || quantity > 2147483647) {
@@ -486,8 +497,8 @@ int main() {
         continue;
       }
       try {
-        quantity = std::stof(quantityStr);
-        costPrice = std::stof(costPriceStr);
+        quantity = std::stod(quantityStr);
+        costPrice = std::stod(costPriceStr);
         if (quantity <= 0 || quantity > 2147483647) {
           printError("Invalid quantity");
           continue;
