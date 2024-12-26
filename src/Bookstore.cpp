@@ -76,7 +76,10 @@ bool isValidPrice(const std::string &str) {
   size_t dotPos = str.find('.');
   if (dotPos == std::string::npos) {
     return std::all_of(str.begin(), str.end(), ::isdigit);
+  } else {
+    if (str.length() - dotPos - 1 > 2) return false;
   }
+  
 
   return std::all_of(str.begin(), str.begin() + dotPos, ::isdigit) &&
          std::all_of(str.begin() + dotPos + 1, str.end(), ::isdigit);
@@ -445,7 +448,7 @@ int main() {
     } else if (op == "buy") {
       std::string ISBN;
       std::string quantityStr;
-      float quantity;
+      double quantity;
       if (!(iss >> ISBN)) {
         printError("Missing ISBN parameter");
         continue;
