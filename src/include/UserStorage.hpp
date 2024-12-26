@@ -18,6 +18,13 @@ private:
     char UserID[31];
     char PassWord[31];
     char UserName[31];
+
+    UserInfo() {
+      Privilege = 0;
+      strcpy(UserID, "");
+      strcpy(PassWord, "");
+      strcpy(UserName, "");
+    }
   };
 
   struct Node {
@@ -338,7 +345,7 @@ public:
                const std::string &UserName, int Privilege) {
     UserInfo user;
     user.Privilege = Privilege;
-    if (user.Privilege >= currentUser.Privilege) {
+    if (Privilege >= currentUser.Privilege) {
       return false;
     }
     strcpy(user.UserID, UserID.c_str());

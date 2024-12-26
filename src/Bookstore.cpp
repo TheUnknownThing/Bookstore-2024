@@ -91,9 +91,10 @@ int main() {
   std::string line, op;
   BookstoreOperation bookstore;
   while (true) {
+    if (std::cin.eof()) break;
+    
     std::getline(std::cin, line);
-    if (line.empty())
-      break;
+    if (line.empty()) continue;
     std::istringstream iss(line);
     iss >> op;
 
