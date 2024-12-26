@@ -52,10 +52,16 @@ bool isValidKeywords(const std::string &str) {
   while (std::getline(ss, token, '|')) {
     if (token.empty())
       return false;
+    if (token.length() > 60)
+      return false;
     if (token.find('\"') != std::string::npos)
       return false;
     if (!keywords.insert(token).second)
-      return false; // Duplicate keyword
+      return false;
+    if (!std::all_of(token.begin(), token.end(), [](char c) {
+      return c >= 32 && c <= 126 && c != '\"';
+    }))
+      return false;
   }
   return true;
 }
@@ -70,17 +76,23 @@ bool isValidPrice(const std::string &str) {
   if (str.empty() || str.length() > 13)
     return false;
 
-  if (str.front() == '-')
+  if (str.front() == '-' || str.front() == '.' || str.back() == '.')
     return false;
 
   size_t dotPos = str.find('.');
   if (dotPos == std::string::npos) {
     return std::all_of(str.begin(), str.end(), ::isdigit);
-  } else {
-    if (str.length() - dotPos - 1 > 2) return false;
   }
   
+  // Check for multiple decimal points
+  if (str.find('.', dotPos + 1) != std::string::npos)
+    return false;
 
+  // Check decimal places
+  if (str.length() - dotPos - 1 > 2 || str.length() - dotPos - 1 == 0)
+    return false;
+
+  // Check if all characters before and after dot are digits
   return std::all_of(str.begin(), str.begin() + dotPos, ::isdigit) &&
          std::all_of(str.begin() + dotPos + 1, str.end(), ::isdigit);
 }
@@ -377,7 +389,7 @@ int main() {
           continue;
         }
         BookName = BookName.substr(1, BookName.length() - 2);
-        if (!isValidBookNameOrAuthor(BookName)) {
+        if (!isValidBookNameOrAuthor(BookName) || BookName.empty()) {
           printError("Invalid book name format");
           continue;
         }
@@ -394,7 +406,7 @@ int main() {
           continue;
         }
         Author = Author.substr(1, Author.length() - 2);
-        if (!isValidBookNameOrAuthor(Author)) {
+        if (!isValidBookNameOrAuthor(Author) || Author.empty()) {
           printError("Invalid author format");
           continue;
         }
@@ -412,10 +424,10 @@ int main() {
         }
         Keyword = Keyword.substr(1, Keyword.length() - 2);
         if (Keyword.find("|") != std::string::npos) {
-          printError("Keywords must be enclosed in quotes");
+          printError("Keyword cannot contain '|'");
           continue;
         }
-        if (!isValidKeywords(Keyword)) {
+        if (!isValidKeywords(Keyword) || Keyword.empty()) {
           printError("Invalid keyword format");
           continue;
         }
@@ -508,6 +520,12 @@ int main() {
         }
         if (costPrice <= 0) {
           printError("Cost price must be positive");
+          continue;
+        }
+        // Check if cost price has exactly 2 decimal places
+        std::string::size_type dotPos = costPriceStr.find('.');
+        if (dotPos != std::string::npos && costPriceStr.length() - dotPos - 1 != 2) {
+          printError("Cost price must have exactly 2 decimal places");
           continue;
         }
       } catch (const std::exception &) {
