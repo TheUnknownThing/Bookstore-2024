@@ -16,26 +16,22 @@ bool isValidUserIDOrPassword(const std::string &str) {
 bool isValidUsername(const std::string &str) {
   if (str.length() > 30)
     return false;
-  return std::all_of(str.begin(), str.end(), [](char c) {
-    return c >= 32 && c <= 126;
-  });
+  return std::all_of(str.begin(), str.end(),
+                     [](char c) { return c >= 32 && c <= 126; });
 }
 
 bool isValidISBN(const std::string &str) {
   if (str.length() > 20)
     return false;
-  return std::all_of(str.begin(), str.end(), [](char c) {
-    return c >= 32 && c <= 126;
-  });
+  return std::all_of(str.begin(), str.end(),
+                     [](char c) { return c >= 32 && c <= 126; });
 }
 
 bool isValidBookNameOrAuthor(const std::string &str) {
   if (str.length() > 60)
     return false;
-  return std::all_of(str.begin(), str.end(), [](char c) {
-    return (c >= 32 && c <= 126 &&
-            c != '"');
-  });
+  return std::all_of(str.begin(), str.end(),
+                     [](char c) { return (c >= 32 && c <= 126 && c != '"'); });
 }
 
 bool isValidKeywords(const std::string &str) {
@@ -58,9 +54,8 @@ bool isValidKeywords(const std::string &str) {
       return false;
     if (!keywords.insert(token).second)
       return false;
-    if (!std::all_of(token.begin(), token.end(), [](char c) {
-      return c >= 32 && c <= 126 && c != '\"';
-    }))
+    if (!std::all_of(token.begin(), token.end(),
+                     [](char c) { return c >= 32 && c <= 126 && c != '\"'; }))
       return false;
   }
   return true;
@@ -83,7 +78,7 @@ bool isValidPrice(const std::string &str) {
   if (dotPos == std::string::npos) {
     return std::all_of(str.begin(), str.end(), ::isdigit);
   }
-  
+
   if (str.find('.', dotPos + 1) != std::string::npos)
     return false;
 
@@ -106,10 +101,12 @@ int main() {
   std::string line, op;
   BookstoreOperation bookstore;
   while (true) {
-    if (std::cin.eof()) break;
+    if (std::cin.eof())
+      break;
 
     std::getline(std::cin, line);
-    if (line.empty()) continue;
+    if (line.empty())
+      continue;
     std::istringstream iss(line);
     iss >> op;
 
@@ -256,14 +253,17 @@ int main() {
       double Price = -1;
       std::string type;
       bool hasError = false;
+      bool hasISBN = false, hasName = false, hasAuthor = false;
+      bool hasKeywords = false, hasPrice = false;
 
       while (iss >> type && !hasError) {
         if (type.substr(0, 6) == "-ISBN=") {
-          if (!ISBN.empty()) {
+          if (hasISBN) {
             printError("Duplicate ISBN parameter");
             hasError = true;
             break;
           }
+          hasISBN = true;
           ISBN = type.substr(6);
           if (!isValidISBN(ISBN)) {
             printError("Invalid ISBN format");
@@ -271,11 +271,12 @@ int main() {
             break;
           }
         } else if (type.substr(0, 6) == "-name=") {
-          if (!BookName.empty()) {
+          if (hasName) {
             printError("Duplicate name parameter");
             hasError = true;
             break;
           }
+          hasName = true;
           BookName = type.substr(6);
           if (BookName.length() < 2 || BookName.front() != '"' ||
               BookName.back() != '"') {
@@ -290,11 +291,12 @@ int main() {
             break;
           }
         } else if (type.substr(0, 8) == "-author=") {
-          if (!Author.empty()) {
+          if (hasAuthor) {
             printError("Duplicate author parameter");
             hasError = true;
             break;
           }
+          hasAuthor = true;
           Author = type.substr(8);
           if (Author.length() < 2 || Author.front() != '"' ||
               Author.back() != '"') {
@@ -309,11 +311,12 @@ int main() {
             break;
           }
         } else if (type.substr(0, 9) == "-keyword=") {
-          if (!Keywords.empty()) {
+          if (hasKeywords) {
             printError("Duplicate keyword parameter");
             hasError = true;
             break;
           }
+          hasKeywords = true;
           Keywords = type.substr(9);
           if (Keywords.length() < 2 || Keywords.front() != '"' ||
               Keywords.back() != '"') {
@@ -328,11 +331,12 @@ int main() {
             break;
           }
         } else if (type.substr(0, 7) == "-price=") {
-          if (Price != -1) {
+          if (hasPrice) {
             printError("Duplicate price parameter");
             hasError = true;
             break;
           }
+          hasPrice = true;
           std::string PriceStr = type.substr(7);
           if (!isValidPrice(PriceStr)) {
             printError("Invalid price format");
