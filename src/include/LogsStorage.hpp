@@ -5,11 +5,12 @@
 #include <cstring>
 #include <iostream>
 #include <string>
-
-#define BLOCK_SIZE 1000
+#include <iomanip>
+#include <vector>
+#include <algorithm>
 
 class Logs {
-private:
+public:
   enum OperationType {
     LOGIN,
     LOGOUT,
@@ -56,137 +57,197 @@ private:
     };
   };
 
-  struct Record {
-    Log log;
-  };
-
-  struct Node {
-    int curPos;
-    int curSize;
-    int nextPos;
-    Log firstLog;
-  };
-
-  FileOperation<Node> nodeFile;
-  FileOperation<Record[BLOCK_SIZE]> recordFile;
-
-public:
   Logs() {
-    recordFile.initialise("log.dat");
-    nodeFile.initialise("logNode.dat");
     FileInit();
   }
 
-  void FileInit() {
-    if (recordFile.isEmpty()) {
-      Record records[BLOCK_SIZE];
-      memset(records, 0, sizeof(records));
-      recordFile.write(records);
-    }
-    if (nodeFile.isEmpty()) {
-      Node node;
-      node.curPos = 0;
-      node.curSize = 0;
-      node.nextPos = -1;
-      memset(&node.firstLog, 0, sizeof(Log));
-      nodeFile.write(node);
-    }
+  void AddLoginLog(const std::string &userID) {
+    Log log;
+    log.op = LOGIN;
+    strncpy(log.userID, userID.c_str(), 30);
+    log.userID[30] = '\0';
+    AddLog(log);
   }
 
+  void AddLogoutLog(const std::string &userID) {
+    Log log;
+    log.op = LOGOUT;
+    strncpy(log.userID, userID.c_str(), 30);
+    log.userID[30] = '\0';
+    AddLog(log);
+  }
 
+  void AddUserLog(OperationType op, const std::string &currentUser,
+                 const std::string &targetUser, const std::string &userName, int privilege) {
+    Log log;
+    log.op = op;
+    strncpy(log.userID, currentUser.c_str(), 30);
+    log.userID[30] = '\0';
+    strncpy(log.userLog.userID, targetUser.c_str(), 30);
+    strncpy(log.userLog.userName, userName.c_str(), 30);
+    log.userLog.privilege = privilege;
+    AddLog(log);
+  }
+
+  void AddBookLog(OperationType op, const std::string &userID,
+                 const std::string &ISBN, int quantity, double price) {
+    Log log;
+    log.op = op;
+    strncpy(log.userID, userID.c_str(), 30);
+    log.userID[30] = '\0';
+    strncpy(log.bookLog.ISBN, ISBN.c_str(), 20);
+    log.bookLog.ISBN[20] = '\0';
+    log.bookLog.quantity = quantity;
+    if (op == BUY) {
+      log.bookLog.sellingPrice = price;
+    } else {
+      log.bookLog.costPrice = price;
+    }
+    AddLog(log);
+  }
+
+  void AddModifyLog(const std::string &userID, const std::string &ISBN) {
+    Log log;
+    log.op = MODIFY;
+    strncpy(log.userID, userID.c_str(), 30);
+    log.userID[30] = '\0';
+    strncpy(log.bookLog.ISBN, ISBN.c_str(), 20);
+    log.bookLog.ISBN[20] = '\0';
+    AddLog(log);
+  }
+
+private:
+  struct Node {
+    Log log;
+    int nextPos;
+  };
+
+  FileOperation<Node> file;
+  int head = -1;
+
+  void FileInit() {
+    file.initialise("logs.dat");
+    if (!file.isEmpty()) {
+      Node firstNode;
+      file.read(firstNode, 0);
+      head = 0;
+    }
+  }
 
   void AddLog(const Log &newLog) {
-    Node curNode;
-    int nodePos = 0;
-    nodeFile.read(curNode, nodePos);
-
-    while (curNode.nextPos != -1) {
-      nodePos = curNode.nextPos;
-      nodeFile.read(curNode, nodePos);
-    }
-
-    Record records[BLOCK_SIZE];
-    recordFile.read(records, curNode.curPos);
-
-    if (curNode.curSize < BLOCK_SIZE) {
-      records[curNode.curSize].log = newLog;
-      curNode.curSize++;
-
-      if (curNode.curSize == 1) {
-        curNode.firstLog = newLog;
-      }
-
-      recordFile.update(records, curNode.curPos);
-      nodeFile.update(curNode, nodePos);
-    } else {
-      Node newNode;
-      Record newRecords[BLOCK_SIZE];
-      memset(newRecords, 0, sizeof(newRecords));
-
-      newRecords[0].log = newLog;
-      newNode.curPos = recordFile.write(newRecords);
-      newNode.curSize = 1;
-      newNode.nextPos = -1;
-      newNode.firstLog = newLog;
-
-      curNode.nextPos = nodeFile.write(newNode);
-      nodeFile.update(curNode, nodePos);
-    }
+    Node newNode;
+    newNode.log = newLog;
+    newNode.nextPos = head;
+    head = file.write(newNode);
   }
 
- void ShowLog() {
-    Node curNode;
-    int nodePos = 0;
-    nodeFile.read(curNode, nodePos);
+public:
+  void ShowLog() {
+    if (head == -1) {
+      std::cout << "No logs available." << std::endl;
+      return;
+    }
 
-    int logIndex = 1;
+    Node currentNode;
+    int currentPos = head;
 
-    while (true) {
-      Record records[BLOCK_SIZE];
-      recordFile.read(records, curNode.curPos);
+    std::cout << "\n=== System Log Report ===\n" << std::endl;
 
-      for (int i = 0; i < curNode.curSize; ++i) {
-        const Log &log = records[i].log;
-        std::cout << logIndex++ << " ";
-        if (log.op == LOGIN) {
-          std::cout << "User " << log.userID << " log in" << std::endl;
-        } else if (log.op == LOGOUT) {
-          std::cout << "User " << log.userID << " log out" << std::endl;
-        } else if (log.op == USERADD) {
-          std::cout << "User " << log.userID << " add user " << log.userLog.userID << " with privilege " << log.userLog.privilege << std::endl;
-        } else if (log.op == REGISTER) {
-          std::cout << "User " << log.userID << " register user " << log.userLog.userID << " with privilege " << log.userLog.privilege << std::endl;
-        } else if (log.op == PASSWD) {
-          std::cout << "User " << log.userID << " change password of user " << log.userLog.userID << std::endl;
-        } else if (log.op == DELETE) {
-          std::cout << "User " << log.userID << " delete user " << log.userLog.userID << std::endl;
-        } else if (log.op == SHOW) {
-          std::cout << "User " << log.userID << " show book" << std::endl;
-        } else if (log.op == BUY) {
-          std::cout << "User " << log.userID << " buy book " << log.bookLog.ISBN << " with quantity " << log.bookLog.quantity << std::endl;
-        } else if (log.op == SELECT) {
-          std::cout << "User " << log.userID << " select book " << log.bookLog.ISBN << std::endl;
-        } else if (log.op == MODIFY) {
-          std::cout << "User " << log.userID << " modify book " << log.bookLog.ISBN << " with quantity " << log.bookLog.quantity << " cost price " << log.bookLog.costPrice << " selling price " << log.bookLog.sellingPrice << std::endl;
-        } else if (log.op == IMPORT) {
-          std::cout << "User " << log.userID << " import book " << log.bookLog.ISBN << " with quantity " << log.bookLog.quantity << " cost price " << log.bookLog.costPrice << std::endl;
-        } else if (log.op == SHOWFINANCE) {
-          std::cout << "User " << log.userID << " show finance" << std::endl;
-        } else if (log.op == REPORTFINANCE) {
-          std::cout << "User " << log.userID << " report finance" << std::endl;
-        } else if (log.op == REPORTEMPLOYEE) {
-          std::cout << "User " << log.userID << " report employee" << std::endl;
-        } else if (log.op == LOG) {
-          std::cout << "User " << log.userID << " log" << std::endl;
-        }
+    while (currentPos != -1) {
+      file.read(currentNode, currentPos);
+      
+      const Log &log = currentNode.log;
+      std::cout << "User: " << log.userID << " | Operation: ";
+      
+      switch (log.op) {
+        case LOGIN:
+          std::cout << "Login";
+          break;
+        case LOGOUT:
+          std::cout << "Logout";
+          break;
+        case BUY:
+          std::cout << "Buy - ISBN: " << log.bookLog.ISBN 
+                    << ", Quantity: " << log.bookLog.quantity
+                    << ", Price: " << std::fixed << std::setprecision(2) 
+                    << log.bookLog.sellingPrice;
+          break;
+        case IMPORT:
+          std::cout << "Import - ISBN: " << log.bookLog.ISBN
+                    << ", Quantity: " << log.bookLog.quantity
+                    << ", Cost: " << std::fixed << std::setprecision(2)
+                    << log.bookLog.costPrice;
+          break;
+        case MODIFY:
+          std::cout << "Modify - ISBN: " << log.bookLog.ISBN;
+          break;
+        case USERADD:
+        case REGISTER:
+          std::cout << (log.op == USERADD ? "Add User" : "Register")
+                    << " - ID: " << log.userLog.userID
+                    << ", Name: " << log.userLog.userName
+                    << ", Privilege: " << log.userLog.privilege;
+          break;
+        default:
+          std::cout << "Other Operation";
       }
+      std::cout << std::endl;
 
-      if (curNode.nextPos == -1) {
-        break;
-      } else {
-        nodePos = curNode.nextPos;
-        nodeFile.read(curNode, nodePos);
+      currentPos = currentNode.nextPos;
+    }
+    std::cout << "\n=== End of Log Report ===\n" << std::endl;
+  }
+
+  void ShowEmployeeLog() {
+    // sort by user ID, record USERADD, IMPORT, MODIFY
+
+    if (head == -1) {
+      std::cout << "No logs available." << std::endl;
+      return;
+    }
+    
+    Node currentNode;
+    int currentPos = head;
+
+    std::vector<Node> logs;
+
+    while (currentPos != -1) {
+      file.read(currentNode, currentPos);
+      if (currentNode.log.op == USERADD || currentNode.log.op == IMPORT || currentNode.log.op == MODIFY && strcmp(currentNode.log.userID, "root") != 0) {
+        logs.push_back(currentNode);
       }
+      currentPos = currentNode.nextPos;
+    }
+
+    std::sort(logs.begin(), logs.end(), [](const Node &a, const Node &b) {
+      return strcmp(a.log.userID, b.log.userID) < 0;
+    });
+
+    std::cout << "\n=== Employee Log Report ===\n" << std::endl;
+
+    for (const auto &node : logs) {
+      const Log &log = node.log;
+      std::cout << "User: " << log.userID << " | Operation: ";
+      
+      switch (log.op) {
+        case USERADD:
+          std::cout << "Add User - ID: " << log.userLog.userID
+                    << ", Name: " << log.userLog.userName
+                    << ", Privilege: " << log.userLog.privilege;
+          break;
+        case IMPORT:
+          std::cout << "Import - ISBN: " << log.bookLog.ISBN
+                    << ", Quantity: " << log.bookLog.quantity
+                    << ", Cost: " << std::fixed << std::setprecision(2)
+                    << log.bookLog.costPrice;
+          break;
+        case MODIFY:
+          std::cout << "Modify - ISBN: " << log.bookLog.ISBN;
+          break;
+        default:
+          std::cout << "Other Operation";
+      }
+      std::cout << std::endl;
     }
   }
 };

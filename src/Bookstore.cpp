@@ -338,7 +338,7 @@ int main() {
           }
           try {
             Price = std::stod(PriceStr);
-            if (Price <= 0) {
+            if (Price < 0) {
               printError("Price cannot be negative");
               hasError = true;
               break;
@@ -525,6 +525,18 @@ int main() {
         continue;
       }
       bookstore.Import(quantity, costPrice);
+    } else if (op == "log") {
+      bookstore.Log();
+    } else if (op == "report") {
+      std::string temp;
+      iss >> temp;
+      if (temp == "finance") {
+        bookstore.ReportFinance();
+      } else if (temp == "employee") {
+        bookstore.ReportEmployee();
+      } else {
+        printError("Unknown command");
+      }
     } else {
       printError("Unknown command");
     }

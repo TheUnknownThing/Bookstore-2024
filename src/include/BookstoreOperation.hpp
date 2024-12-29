@@ -58,9 +58,20 @@ private:
     int privilege;
   };
 
+  struct Log {
+    OperationType op;
+    char userID[31];
+    union {
+      FinancialLog financialLog;
+      BookLog bookLog;
+      UserLog userLog;
+    };
+  };
+
   User userStorage;
   Book bookStorage;
   Finance financeStorage;
+  Logs logs;
 
   void printError(const std::string &detailedMessage) {
 #ifdef DEBUG_MODE
@@ -84,11 +95,11 @@ public:
    */
 
   bool Login(const std::string &userID, const std::string &passWord = "") {
-    // userStorage.PrintAll(); // debug
     if (!userStorage.Login(userID, passWord)) {
       printError("Login failed");
       return false;
     }
+    logs.AddLoginLog(userID);
     return true;
   }
 
@@ -102,6 +113,7 @@ public:
       printError("Add user failed");
       return false;
     }
+    logs.AddUserLog(Logs::USERADD, userStorage.GetCurrentUserID(), userID, userName, privilege);
     return true;
   }
 
@@ -148,6 +160,7 @@ public:
       printError("Register failed");
       return false;
     }
+    logs.AddUserLog(Logs::REGISTER, userID, userID, userName, 1);
     return true;
   }
 
@@ -156,6 +169,8 @@ public:
       printError("Insufficient privileges to logout");
       return false;
     }
+    std::string currentUser = userStorage.GetCurrentUserID();
+    logs.AddLogoutLog(currentUser);
     userStorage.Logout();
     return true;
   }
@@ -192,9 +207,10 @@ public:
     auto [flag, price] = bookStorage.buy(ISBN, quantity);
     if (!flag) {
       printError("Book not found or insufficient stock");
-    } else {
-      financeStorage.AddIncome(price);
+      return false;
     }
+    financeStorage.AddIncome(price);
+    logs.AddBookLog(Logs::BUY, userStorage.GetCurrentUserID(), ISBN, quantity, price);
     return true;
   }
 
@@ -260,6 +276,7 @@ public:
     if (Price != -1) {
       bookStorage.modify(currentISBN, "", "", "", "", Price);
     }
+    logs.AddModifyLog(userStorage.GetCurrentUserID(), currentISBN);
     return true;
   }
 
@@ -280,6 +297,7 @@ public:
     }
     bookStorage.import(currentISBN, quantity);
     financeStorage.AddOutcome(costPrice);
+    logs.AddBookLog(Logs::IMPORT, userStorage.GetCurrentUserID(), currentISBN, quantity, costPrice);
     return true;
   }
   /*
@@ -317,8 +335,22 @@ public:
   void ReportFinance() {
     if (!canExecute(REPORTFINANCE)) {
       std::cout << "Invalid" << std::endl;
+      return;
     }
-    // TODO
+    
+    std::cout << "\n=== Financial Report ===\n" << std::endl;
+    
+    double totalIncome = financeStorage.GetTotalIncome();
+    double totalOutcome = financeStorage.GetTotalOutcome();
+    double netProfit = totalIncome - totalOutcome;
+    
+    std::cout << "Overall Financial Summary:" << std::endl;
+    std::cout << std::fixed << std::setprecision(2);
+    std::cout << "Total Income:  + " << totalIncome << std::endl;
+    std::cout << "Total Expense: - " << totalOutcome << std::endl;
+    std::cout << "Net Profit:    " << (netProfit >= 0 ? "+" : "") << netProfit << std::endl;
+
+    std::cout << "\n=== End of Financial Report ===\n" << std::endl;
   }
 
   /*
@@ -329,8 +361,11 @@ public:
   void ReportEmployee() {
     if (!canExecute(REPORTEMPLOYEE)) {
       std::cout << "Invalid" << std::endl;
+      return;
     }
-    // TODO
+    
+    logs.ShowEmployeeLog();
+    
   }
 
   /*
@@ -341,7 +376,10 @@ public:
   void Log() {
     if (!canExecute(LOG)) {
       std::cout << "Invalid" << std::endl;
+      return;
     }
+    
+    logs.ShowLog();
   }
 
   /*
