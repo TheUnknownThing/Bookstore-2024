@@ -213,7 +213,7 @@ public:
 
     while (currentPos != -1) {
       file.read(currentNode, currentPos);
-      if (currentNode.log.op == USERADD || currentNode.log.op == IMPORT || currentNode.log.op == MODIFY && strcmp(currentNode.log.userID, "root") != 0) {
+      if ((currentNode.log.op == USERADD || currentNode.log.op == IMPORT || currentNode.log.op == MODIFY) && strcmp(currentNode.log.userID, "root") != 0) {
         logs.push_back(currentNode);
       }
       currentPos = currentNode.nextPos;
@@ -249,6 +249,8 @@ public:
       }
       std::cout << std::endl;
     }
+
+    std::cout << "\n=== End of Employee Log Report ===\n" << std::endl;
   }
 };
 
